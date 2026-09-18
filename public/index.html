@@ -47,6 +47,7 @@ body{background:var(--bg); color:var(--ink);
 h1,h2,h3{font-family:"Barlow Condensed", Barlow, system-ui, sans-serif; font-weight:600; letter-spacing:.01em}
 .num{font-variant-numeric:tabular-nums}
 button,input,select,textarea{font:inherit; color:inherit}
+input[type=checkbox]{accent-color:var(--brand); width:16px; height:16px}
 :focus-visible{outline:2px solid var(--red); outline-offset:2px; border-radius:3px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 body.viewonly .wrap{display:none}
@@ -130,32 +131,38 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .inlinechk input{width:auto}
 
 .plist{list-style:none; margin:12px 0 0; padding:0; border-top:1px solid var(--line-soft); max-height:520px; overflow:auto}
-.plist li{display:grid; grid-template-columns:24px minmax(0,1fr) auto; gap:9px; align-items:center;
+.plist li{display:grid; grid-template-columns:22px minmax(0,1fr) auto; gap:10px; align-items:center;
   padding:7px 0; border-bottom:1px solid var(--line-soft)}
 .plist .idx{font-size:12.5px; color:var(--ink-faint); text-align:right}
 .pname{font-weight:500; overflow-wrap:anywhere; font-size:15px}
 .pname small{display:block; font-weight:400; font-size:12px; color:var(--ink-dim)}
-.tags{display:flex; gap:4px; align-items:center}
+/* Feste Spaltenbreiten, damit die Marken über alle Zeilen fluchten. */
+.tags{display:grid; grid-template-columns:27px 27px 50px 34px 40px 24px; gap:4px; align-items:center}
+.tags .tg{width:100%; padding:4px 0; text-align:center}
 .tg{border:1px solid var(--line); background:transparent; border-radius:2px; cursor:pointer;
-  font-size:11.5px; padding:3px 6px; color:var(--ink-faint);
-  font-family:"Barlow Condensed",sans-serif; font-weight:600}
+  font-size:12px; line-height:1.25; color:var(--ink-faint);
+  font-family:"Barlow Condensed",sans-serif; font-weight:600; font-variant-numeric:tabular-nums}
+.tg:hover{border-color:var(--ink-faint)}
 .tg[aria-pressed="true"]{border-color:currentColor}
 .tg.e[aria-pressed="true"]{color:var(--brand)}
 .tg.t[aria-pressed="true"]{color:var(--brand)}
+.tg.t.fixed{background:var(--brand); border-color:var(--brand); color:#fff}
 .tg.pay[aria-pressed="true"]{color:var(--green)}
 .tg.here[aria-pressed="true"]{color:var(--ink)}
 .tg.u18[aria-pressed="true"]{color:var(--red)}
-.tg.del{color:var(--ink-faint); border-color:transparent; font-size:15px; padding:3px 5px}
+.tg.del{color:var(--ink-faint); border-color:transparent; font-size:16px}
+.tg.del:hover{border-color:transparent}
 .tg.del:hover{color:var(--red)}
 .empty{color:var(--ink-dim); font-size:14.5px; padding:16px 0; text-align:center}
 .sums{display:flex; flex-wrap:wrap; gap:16px; margin-top:13px; padding-top:12px; border-top:1px solid var(--line); font-size:14px}
 .sums div span{color:var(--ink-dim)}
 .sums div b{font-family:"Barlow Condensed",sans-serif; font-size:19px; font-weight:600; margin-left:5px}
-.sums div b.bad{color:var(--red)}
+.sums div b.bad{color:var(--ink)}
 
 .tlist{list-style:none; margin:10px 0 0; padding:0; border-top:1px solid var(--line-soft)}
-.tlist li{display:grid; grid-template-columns:24px minmax(0,1fr) auto; gap:9px; align-items:center;
+.tlist li{display:grid; grid-template-columns:24px minmax(0,1fr) 24px; gap:9px; align-items:center;
   padding:7px 0; border-bottom:1px solid var(--line-soft)}
+.tlist .tags{grid-template-columns:24px}
 
 .bar{height:4px; background:var(--line-soft); border-radius:2px; overflow:hidden; margin:2px 0 14px}
 .bar i{display:block; height:100%; background:var(--green)}
@@ -376,7 +383,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
           </div>
           <div class="inlinechk">
             <label><input type="checkbox" id="new-e" checked> spielt Einzel</label>
-            <label><input type="checkbox" id="new-t"> spielt im Team</label>
+            <label><input type="checkbox" id="new-t"> sucht ein Team</label>
           </div>
           <p class="hint"><button class="btn ghost sm" id="btn-paste">Namensliste einfügen</button></p>
           <div id="paste-box" style="display:none">
@@ -825,7 +832,7 @@ function ensurePlayer(name){
   name=String(name||"").trim().replace(/\s+/g," ");
   if(!name) return null;
   var ex=playerByName(name); if(ex) return ex;
-  var p={id:uid(),name:name,einzel:false,paid:false,present:false,u18:false};
+  var p={id:uid(),name:name,einzel:false,wantsTeam:false,paid:false,present:false,u18:false};
   players().push(p); return p;
 }
 function starts(p){ return (p.einzel?1:0)+(teamOfPlayer(p.id)?1:0); }
@@ -851,9 +858,9 @@ function addPlayer(name,e,t){
   name=String(name||"").trim().replace(/\s+/g," ");
   if(!name) return null;
   var p=playerByName(name);
-  if(p){ if(e) p.einzel=true; return p; }
+  if(p){ if(e) p.einzel=true; if(t) p.wantsTeam=true; return p; }
   if(e && entrants("einzel").length>=MAX){ toast("Einzelfeld ist mit "+MAX+" voll."); return null; }
-  p={id:uid(),name:name,einzel:!!e,paid:false,present:false,u18:false};
+  p={id:uid(),name:name,einzel:!!e,wantsTeam:!!t,paid:false,present:false,u18:false};
   players().push(p);
   return p;
 }
@@ -1270,11 +1277,12 @@ function renderRoster(){
   } else {
     ps.forEach(function(p,i){
       var t=teamOfPlayer(p.id);
+      var sub = t ? "Team: "+teamName(t) : (p.wantsTeam ? "sucht noch einen Partner" : "");
       o+='<li><span class="idx num">'+(i+1)+'</span>'
-       +'<span class="pname">'+esc(p.name)+(t?'<small>Team: '+esc(teamName(t))+'</small>':'')+'</span>'
+       +'<span class="pname">'+esc(p.name)+(sub?'<small>'+esc(sub)+'</small>':'')+'</span>'
        +'<span class="tags">'
        +'<button class="tg e" data-act="einzel" data-id="'+p.id+'" aria-pressed="'+(p.einzel?"true":"false")+'" title="Einzel">E</button>'
-       +'<button class="tg t" data-act="teaminfo" data-id="'+p.id+'" aria-pressed="'+(t?"true":"false")+'" title="'+(t?"Im Team "+esc(teamName(t)):"In keinem Team")+'">T</button>'
+       +'<button class="tg t'+(t?" fixed":"")+'" data-act="team" data-id="'+p.id+'" aria-pressed="'+((t||p.wantsTeam)?"true":"false")+'" title="'+(t?"Im Team "+esc(teamName(t)):(p.wantsTeam?"Sucht einen Partner":"Spielt kein Team"))+'">T</button>'
        +'<button class="tg pay" data-act="paid" data-id="'+p.id+'" aria-pressed="'+(p.paid?"true":"false")+'" title="Startgeld">'+fee(p)+' €</button>'
        +'<button class="tg here" data-act="present" data-id="'+p.id+'" aria-pressed="'+(p.present?"true":"false")+'" title="Vor Ort">DA</button>'
        +'<button class="tg u18" data-act="u18" data-id="'+p.id+'" aria-pressed="'+(p.u18?"true":"false")+'" title="Unter 18 — Einverständnis nötig">U18</button>'
@@ -1297,25 +1305,32 @@ function renderRoster(){
 
   var free=players().filter(function(p){ return !teamOfPlayer(p.id); })
     .sort(function(a,b){ return a.name.localeCompare(b.name,"de"); });
-  var opts='<option value="">Spieler wählen …</option>'+free.map(function(p){
-    return '<option value="'+p.id+'">'+esc(p.name)+'</option>'; }).join("");
+  function optList(a){ return a.map(function(p){ return '<option value="'+p.id+'">'+esc(p.name)+'</option>'; }).join(""); }
+  var wanting=free.filter(function(p){ return p.wantsTeam; });
+  var rest=free.filter(function(p){ return !p.wantsTeam; });
+  var opts='<option value="">Spieler wählen …</option>';
+  if(wanting.length) opts+='<optgroup label="Sucht Partner">'+optList(wanting)+'</optgroup>';
+  if(rest.length) opts+='<optgroup label="'+(wanting.length?"Übrige":"Alle")+'">'+optList(rest)+'</optgroup>';
   if(document.activeElement!==$("sel-p1")) $("sel-p1").innerHTML=opts;
   if(document.activeElement!==$("sel-p2")) $("sel-p2").innerHTML=opts;
 
-  var soll=0, ist=0, u18=0, here=0, both=0;
+  var soll=0, ist=0, u18=0, here=0, both=0, seeking=0;
   players().forEach(function(p){
     soll+=fee(p); if(p.paid) ist+=fee(p);
     if(p.u18) u18++; if(p.present) here++;
     if(p.einzel&&teamOfPlayer(p.id)) both++;
+    if(p.wantsTeam&&!teamOfPlayer(p.id)) seeking++;
   });
   $("sums").innerHTML='<div><span>Spieler</span><b class="num">'+players().length+'</b></div>'
     +'<div><span>Einzel</span><b class="num">'+entrants("einzel").length+'</b></div>'
     +'<div><span>Teams</span><b class="num">'+teams().length+'</b></div>'
     +'<div><span>doppelt am Start</span><b class="num">'+both+'</b></div>'
+    +(seeking?'<div><span>sucht Partner</span><b class="num">'+seeking+'</b></div>':'')
     +'<div><span>Startgeld</span><b class="num'+(ist<soll?" bad":"")+'">'+ist+' / '+soll+' €</b></div>'
     +'<div><span>vor Ort</span><b class="num">'+here+'</b></div>'
     +(u18?'<div><span>U18</span><b class="num">'+u18+'</b></div>':'');
-  $("sp-sub").innerHTML=players().length+" Personen · "+teams().length+" Teams<br>8 € je Start, 16 € bei beiden Klassen";
+  var nt=teams().length;
+  $("sp-sub").innerHTML=players().length+" Personen · "+nt+(nt===1?" Team":" Teams")+"<br>8 € je Start, 16 € bei beiden Klassen";
   var halfTeam=teams().filter(function(t){ return !playerById(t.a)||!playerById(t.b); }).length;
   $("sp-note").textContent = halfTeam ? halfTeam+" Team(s) haben einen fehlenden Spieler — bitte prüfen." : "";
 }
@@ -1637,7 +1652,7 @@ function doAddPlayer(){
   var p=addPlayer($("in-name").value,$("new-e").checked,$("new-t").checked);
   if(!p) return;
   $("in-name").value="";
-  if($("new-t").checked) toast("„"+p.name+"“ aufgenommen — jetzt rechts ein Team bilden.");
+  if($("new-t").checked&&!teamOfPlayer(p.id)) toast("„"+p.name+"“ sucht einen Partner — steht rechts in der Auswahl ganz oben.");
   persist("roster"); renderAll(); $("in-name").focus();
 }
 $("btn-addp").addEventListener("click",doAddPlayer);
@@ -1648,10 +1663,11 @@ $("plist").addEventListener("click",function(e){
   var id=b.dataset.id, act=b.dataset.act, p=playerById(id);
   if(act==="del"){ removePlayer(id); return; }
   if(!p) return;
-  if(act==="teaminfo"){
-    var t=teamOfPlayer(id);
-    toast(t?("Im Team „"+teamName(t)+"“ — rechts auflösbar."):"Noch in keinem Team. Rechts eins bilden.");
-    return;
+  if(act==="team"){
+    var tm=teamOfPlayer(id);
+    if(tm){ toast("„"+p.name+"“ ist im Team „"+teamName(tm)+"“. Zum Ändern das Team rechts auflösen."); return; }
+    p.wantsTeam=!p.wantsTeam;
+    persist("roster"); renderAll(); return;
   }
   if(act==="einzel"){
     if(p.einzel) p.einzel=false;
