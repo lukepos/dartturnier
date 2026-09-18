@@ -1,0 +1,34 @@
+# ---------------------------------------------------------------------
+#  Netlify-Konfiguration. Diese Datei setzt alles, was sonst in der
+#  Netlify-Oberfläche eingestellt werden müsste.
+# ---------------------------------------------------------------------
+
+[build]
+  # Nur die statischen Dateien werden veröffentlicht — nicht node_modules.
+  publish = "public"
+  # Installiert @netlify/blobs für die Sicherungs-Function.
+  command = "npm install"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Der Service Worker darf nie aus dem Browser-Cache kommen,
+# sonst bleibt eine alte App-Version hängen.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/config.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

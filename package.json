@@ -1,0 +1,8 @@
+{
+  "name": "dart-turnier",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "latest"
+  }
+}
