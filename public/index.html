@@ -390,6 +390,71 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .gatebox .opt p{margin:0 0 11px; font-size:13.5px; color:var(--ink-dim)}
 .gateerr{color:var(--red); font-size:13.5px; margin-top:8px; min-height:19px}
 
+/* ---------- Ergebnisseite ---------- */
+.results{position:fixed; inset:0; z-index:60; background:var(--bg); color:var(--ink);
+  overflow:auto; padding:0 0 60px; display:none}
+.results.on{display:block}
+.rtools{position:sticky; top:0; z-index:2; display:flex; gap:8px; justify-content:flex-end;
+  padding:12px 26px; background:var(--bg); border-bottom:1px solid var(--line-soft)}
+.rpage{max-width:900px; margin:0 auto; padding:30px 26px 0}
+.rhead{display:grid; grid-template-columns:auto minmax(0,1fr); gap:18px; align-items:start;
+  border-bottom:2px solid var(--brand); padding-bottom:16px; margin-bottom:26px}
+.rhead .mark{width:52px; height:52px; margin-top:4px}
+.rhead .org{font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint);
+  margin:0 0 5px; font-weight:500}
+.rhead h1{margin:0; font-size:clamp(26px,4.4vw,40px); line-height:1.02; font-weight:700}
+.rhead .sub{margin:7px 0 0; color:var(--ink-dim); font-size:14.5px}
+.rclass{margin-bottom:38px}
+.rclass > h2{font-size:25px; margin:0 0 4px; border-bottom:1px solid var(--line); padding-bottom:7px}
+.rclass > h2 em{font-style:normal; font-size:14px; color:var(--ink-dim); font-family:Barlow,sans-serif;
+  font-weight:400; margin-left:9px}
+.rclass h3{font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-faint);
+  font-family:Barlow,sans-serif; font-weight:600; margin:24px 0 9px}
+.podium{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:18px}
+@media (max-width:640px){ .podium{grid-template-columns:minmax(0,1fr)} }
+.pod{border:1px solid var(--line); border-top:4px solid var(--line); border-radius:3px; padding:11px 14px 13px}
+.pod.p1{border-top-color:var(--brand); background:var(--surface2)}
+.pod span{display:block; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint)}
+.pod b{display:block; font-family:"Barlow Condensed",sans-serif; font-weight:700; line-height:1.1;
+  font-size:clamp(18px,2.4vw,26px); margin-top:4px; overflow-wrap:anywhere}
+.pod.p1 b{color:var(--brand)}
+.rtab{width:100%; border-collapse:collapse; font-size:14px}
+.rtab th{text-align:left; font-weight:600; font-size:11.5px; color:var(--ink-faint); padding:0 8px 5px 0;
+  border-bottom:1px solid var(--line)}
+.rtab th.r,.rtab td.r{text-align:right}
+.rtab td{padding:5px 8px 5px 0; border-bottom:1px solid var(--line-soft); font-variant-numeric:tabular-nums}
+.rtab td.nm{font-weight:500; overflow-wrap:anywhere}
+.rtab td.pl{width:38px; color:var(--ink-faint); font-family:"Barlow Condensed",sans-serif; font-weight:700}
+.rtab tr.top td.pl{color:var(--brand)}
+.rgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px}
+.rg{border:1px solid var(--line); border-radius:3px; padding:9px 11px 11px}
+.rg h4{margin:0 0 6px; font-size:15px; font-family:"Barlow Condensed",sans-serif}
+.rko{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px}
+.rko h4{margin:0 0 6px; font-size:14px; font-family:"Barlow Condensed",sans-serif}
+.rko h4 em{font-style:normal; font-weight:400; color:var(--ink-faint); font-size:11.5px;
+  font-family:Barlow,sans-serif; margin-left:7px}
+.rko .m{font-size:13.5px; padding:3px 0; border-top:1px solid var(--line-soft); display:flex; gap:8px}
+.rko .m b{font-weight:600}
+.rko .m .s{margin-left:auto; font-variant-numeric:tabular-nums; color:var(--ink-dim); flex:none}
+.rfoot{max-width:900px; margin:0 auto; padding:18px 26px 0; border-top:1px solid var(--line-soft);
+  color:var(--ink-faint); font-size:12.5px}
+.rempty{color:var(--ink-dim); padding:14px 0}
+
+@media print{
+  @page{ size:A4; margin:14mm 13mm; }
+  body{background:#fff !important; color:#000 !important}
+  .wrap,.screen,.gate,.toast,.rtools{display:none !important}
+  .results{position:static !important; display:block !important; overflow:visible; padding:0;
+    background:#fff !important; color:#000 !important}
+  .rpage,.rfoot{max-width:none; padding:0}
+  .rclass{page-break-after:always; margin-bottom:0}
+  .rclass:last-of-type{page-break-after:auto}
+  .rg,.pod,.rko > div{page-break-inside:avoid}
+  .rhead{border-bottom:2pt solid #000}
+  .pod.p1{background:#f2f2f2}
+  .pod.p1 b,.rtab tr.top td.pl,.rhead .mark{color:#000 !important}
+  .rclass h3,.rhead .org,.rtab th{color:#444 !important}
+}
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:22px; z-index:90;
   background:var(--ink); color:var(--bg); padding:9px 16px; border-radius:3px; font-size:14.5px;
   box-shadow:0 4px 14px rgba(0,0,0,.25); max-width:90vw}
@@ -489,6 +554,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <span class="meter"><i id="mtr-einzel" style="width:0%"></i></span>
     </button>
     <button class="btn ghost" id="btn-screen">Anzeige starten</button>
+    <button class="btn ghost" id="btn-results">Ergebnisse</button>
   </div>
 
   <section class="panel" aria-labelledby="h-los">
@@ -594,6 +660,15 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   <p class="foot" id="foot"></p>
 </div>
 
+<div class="results" id="results" role="region" aria-label="Ergebnisse">
+  <div class="rtools">
+    <button class="btn" id="r-print">Als PDF drucken</button>
+    <button class="btn ghost" id="r-copy">Als Text kopieren</button>
+    <button class="btn ghost" id="r-close">Schließen</button>
+  </div>
+  <div id="r-body"></div>
+</div>
+
 <div class="screen" id="screen" role="region" aria-label="Anzeige">
   <div class="shead">
     <span class="swm"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
@@ -615,6 +690,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <button id="s-both" aria-pressed="false">Beides</button>
       <button id="s-auto" aria-pressed="false">Auto</button>
       <button id="s-full">Vollbild</button>
+      <button id="s-results">Ergebnisse</button>
       <button id="s-role">Rolle</button>
       <button id="s-close">Schließen</button>
       </div>
@@ -701,14 +777,18 @@ function toast(msg){
 
 /* ============ Rollen ============ */
 function resolveRole(){
-  if((location.hash||"").toLowerCase().indexOf("anzeige")>-1) return "anzeige";
+  var h=(location.hash||"").toLowerCase();
+  if(h.indexOf("anzeige")>-1||h.indexOf("ergebnis")>-1) return "anzeige";
   return ssGet(LS+"role")||lsGet(LS+"role")||"";
 }
 function applyRole(){
   document.body.classList.toggle("gated", !role);
   $("gate").classList.toggle("on", !role);
   document.body.classList.toggle("viewonly", role==="anzeige");
-  if(role==="anzeige") $("screen").classList.add("on");
+  if(role==="anzeige"){
+    if((location.hash||"").toLowerCase().indexOf("ergebnis")>-1) openResults();
+    else $("screen").classList.add("on");
+  }
 }
 function chooseRole(r,p){
   role=r; pin=p||"";
@@ -1666,6 +1746,171 @@ function renderSync(){
   if($("chips")) renderChips();
 }
 
+/* ============ Ergebnisse ============ */
+/* In welcher Runde ist wer ausgeschieden? R = Sieger des Finales. */
+function koStats(key){
+  var ko=S[key].ko, out={}; if(!ko) return out;
+  var R=koRoundCount(key);
+  for(var r=0;r<R;r++){
+    var n=ko.slots.length/Math.pow(2,r)/2;
+    for(var m=0;m<n;m++){
+      var w=koWinner(key,r,m), l=koLoser(key,r,m);
+      if(l) out[l]=r;
+      if(w&&r===R-1) out[w]=R;
+    }
+  }
+  return out;
+}
+function groupPerf(key){
+  var c=S[key], gp={};
+  if(c.groups) c.groups.forEach(function(g,gi){
+    tableOf(key,g).forEach(function(r,i){
+      gp[r.id]={gi:gi,place:i,pts:r.pts,diff:r.diff,lf:r.lf,la:r.la,sp:r.sp,w:r.w};
+    });
+  });
+  return gp;
+}
+function finalRanking(key){
+  var c=S[key], ko=c.ko, R=koRoundCount(key), ks=koStats(key), gp=groupPerf(key);
+  var ids = c.groups ? c.groups.reduce(function(a,g){ return a.concat(g); },[]) : entrants(key);
+  var champ = R?koWinner(key,R-1,0):null, runner = R?koLoser(key,R-1,0):null;
+  var w3=null,l3=null;
+  if(ko&&ko.third&&R>=2){
+    w3=ko.third.w;
+    var x=koLoser(key,R-2,0), y=koLoser(key,R-2,1);
+    l3=(x===w3)?y:x;
+  }
+  var fixed=[];
+  if(champ){ fixed.push(champ); if(runner) fixed.push(runner);
+    if(w3){ fixed.push(w3); if(l3) fixed.push(l3); } }
+  var isFixed={}; fixed.forEach(function(id){ isFixed[id]=1; });
+  var rest=ids.filter(function(id){ return !isFixed[id]; }).map(function(id){
+    return {id:id, lost:(ks[id]===undefined?-1:ks[id]),
+            g:gp[id]||{gi:99,place:99,pts:-1,diff:-999,lf:-1,sp:0,w:0}};
+  });
+  rest.sort(function(a,b){
+    if(b.lost!==a.lost) return b.lost-a.lost;
+    if(a.g.place!==b.g.place) return a.g.place-b.g.place;
+    if(b.g.pts!==a.g.pts) return b.g.pts-a.g.pts;
+    if(b.g.diff!==a.g.diff) return b.g.diff-a.g.diff;
+    return 0;
+  });
+  return fixed.map(function(id){
+    return {id:id, lost:(ks[id]===undefined?-1:ks[id]), g:gp[id]||{}};
+  }).concat(rest);
+}
+function classDone(key){ var R=koRoundCount(key); return !!(R&&koWinner(key,R-1,0)); }
+function hasData(key){ var c=S[key]; return !!((c.groups&&c.groups.length)||c.ko); }
+
+function resultsHtml(){
+  var now=new Date();
+  var o='<div class="rpage"><div class="rhead"><span class="mark">'+MARK_SVG+'</span><div>'
+    +'<p class="org">St.-Antonius-Schützenbruderschaft Hartefeld · seit 1453</p>'
+    +'<h1>4. Hartefelder Hobby-Dartturnier</h1>'
+    +'<p class="sub">Samstag, 17. Oktober 2026 · Schießstand „Zur Dorfschmiede“, Hartefeld</p>'
+    +'</div></div>';
+  var any=false;
+  ["team","einzel"].forEach(function(key){
+    if(!hasData(key)) return;
+    any=true;
+    var done=classDone(key), rank=finalRanking(key), gp=groupPerf(key), R=koRoundCount(key);
+    o+='<section class="rclass"><h2>'+(key==="team"?"Team · Doppel":"Einzel")
+      +'<em>'+(done?"Endergebnis":"Zwischenstand")+'</em></h2>';
+
+    if(done){
+      var lbl=["1. Platz","2. Platz","3. Platz"];
+      o+='<div class="podium">';
+      for(var i=0;i<3;i++){
+        var e=rank[i];
+        o+='<div class="pod p'+(i+1)+'"><span>'+lbl[i]+'</span><b>'+(e?esc(nameOf(key,e.id)):"—")+'</b></div>';
+      }
+      o+='</div>';
+    }
+
+    if(rank.length){
+      o+='<h3>'+(done?"Endplatzierung":"Platzierung nach aktuellem Stand")+'</h3>'
+       +'<table class="rtab"><thead><tr><th>Pl.</th><th>Name</th><th>Gruppe</th>'
+       +'<th class="r">Siege</th><th class="r">Legs</th><th>Aus in</th></tr></thead><tbody>';
+      rank.forEach(function(e,i){
+        var g=e.g||{};
+        var aus = e.lost===R ? "Sieger"
+          : (e.lost>=0 ? roundName(S[key].ko.slots.length/Math.pow(2,e.lost)) : "Gruppenphase");
+        o+='<tr'+(i<3&&done?' class="top"':'')+'><td class="pl">'+(i+1)+'</td>'
+         +'<td class="nm">'+esc(nameOf(key,e.id))+'</td>'
+         +'<td>'+(g.gi!=null&&g.gi<99?letter(g.gi):"—")+'</td>'
+         +'<td class="r">'+(g.w!=null?g.w:"–")+'</td>'
+         +'<td class="r">'+(g.lf!=null?g.lf+":"+g.la:"–")+'</td>'
+         +'<td>'+esc(aus)+'</td></tr>';
+      });
+      o+='</tbody></table>';
+    }
+
+    var c=S[key];
+    if(c.groups&&c.groups.length){
+      o+='<h3>Gruppenphase</h3><div class="rgrid">';
+      c.groups.forEach(function(g,gi){
+        o+='<div class="rg"><h4>Gruppe '+letter(gi)+'</h4><table class="rtab"><tbody>';
+        tableOf(key,g).forEach(function(r,ri){
+          o+='<tr'+(ri<S.meta.qualifiers?' class="top"':'')+'><td class="pl">'+(ri+1)+'</td>'
+           +'<td class="nm">'+esc(nameOf(key,r.id))+'</td>'
+           +'<td class="r">'+r.pts+'</td><td class="r">'+r.lf+':'+r.la+'</td></tr>';
+        });
+        o+='</tbody></table></div>';
+      });
+      o+='</div>';
+    }
+
+    if(c.ko){
+      o+='<h3>KO-Runde</h3><div class="rko">';
+      for(var r=0;r<R;r++){
+        var ent=c.ko.slots.length/Math.pow(2,r), n=ent/2, rows="";
+        for(var m=0;m<n;m++){
+          var pr=koPair(key,r,m), res=c.ko.results["r"+r+"-"+m];
+          if(koBye(key,r,m)){
+            rows+='<div class="m"><span><b>'+esc(nameOf(key,pr[0]||pr[1]))+'</b></span><span class="s">Freilos</span></div>';
+          } else if(pr[0]&&pr[1]){
+            var wA=res&&res.w===pr[0];
+            rows+='<div class="m"><span>'+(wA?'<b>'+esc(nameOf(key,pr[0]))+'</b>':esc(nameOf(key,pr[0])))
+              +' – '+(res&&!wA?'<b>'+esc(nameOf(key,pr[1]))+'</b>':esc(nameOf(key,pr[1])))+'</span>'
+              +'<span class="s">'+(res?(wA?"2:"+res.ll:res.ll+":2"):"offen")+'</span></div>';
+          }
+        }
+        if(rows) o+='<div><h4>'+roundName(ent)+'<em>'+roundMode(ent)+'</em></h4>'+rows+'</div>';
+      }
+      if(R>=2){
+        var a3=koLoser(key,R-2,0), b3=koLoser(key,R-2,1), r3=c.ko.third;
+        if(a3&&b3){
+          var wa=r3&&r3.w===a3;
+          o+='<div><h4>Spiel um Platz 3<em>'+roundMode(4)+'</em></h4><div class="m">'
+            +'<span>'+(wa?'<b>'+esc(nameOf(key,a3))+'</b>':esc(nameOf(key,a3)))+' – '
+            +(r3&&!wa?'<b>'+esc(nameOf(key,b3))+'</b>':esc(nameOf(key,b3)))+'</span>'
+            +'<span class="s">'+(r3?(wa?"2:"+r3.ll:r3.ll+":2"):"offen")+'</span></div></div>';
+        }
+      }
+      o+='</div>';
+    }
+    o+='</section>';
+  });
+  if(!any) o+='<p class="rempty">Noch keine Ergebnisse — erst auslosen und spielen.</p>';
+  o+='</div>';
+  var pr2=overallProgress();
+  o+='<p class="rfoot">Stand: '+now.toLocaleDateString("de-DE")+', '+clock(now)
+    +' · '+pr2.done+' von '+pr2.total+' Spielen gewertet · erstellt mit der Turnier-App der Bruderschaft</p>';
+  return o;
+}
+function resultsText(){
+  var t="4. HARTEFELDER HOBBY-DARTTURNIER\n17. Oktober 2026 · Zur Dorfschmiede, Hartefeld\n";
+  ["team","einzel"].forEach(function(key){
+    if(!hasData(key)) return;
+    t+="\n\n"+(key==="team"?"TEAM · DOPPEL":"EINZEL")+(classDone(key)?" — Endergebnis":" — Zwischenstand")+"\n";
+    finalRanking(key).forEach(function(e,i){ t+="  "+(i+1)+". "+nameOf(key,e.id)+"\n"; });
+  });
+  return t+"\nStand: "+new Date().toLocaleString("de-DE")+"\n";
+}
+function renderResults(){ $("r-body").innerHTML=resultsHtml(); }
+function openResults(){ $("results").classList.add("on"); renderResults(); }
+function closeResults(){ $("results").classList.remove("on"); }
+
 /* ============ Anzeige ============ */
 function screenAvailable(k){ return {gruppen: !!(S[k].groups&&S[k].groups.length), ko: !!S[k].ko}; }
 function screenTables(k){
@@ -1767,14 +2012,24 @@ function closeScreen(){
   $("screen").classList.remove("on"); lsSet(LS+"screen","0");
   if(autoT){ clearInterval(autoT); autoT=null; } scr.auto=false;
 }
+/* Reihenfolge des Durchlaufs. Steht die Ansicht auf „Beides", wird nur
+   zwischen Team und Einzel gewechselt — die getroffene Wahl bleibt. */
+function autoOrder(){
+  if(scr.view==="both"){
+    return [["team","both"],["einzel","both"]].filter(function(x){
+      var a=screenAvailable(x[0]); return a.gruppen||a.ko; });
+  }
+  return [["team","gruppen"],["team","ko"],["einzel","gruppen"],["einzel","ko"]]
+    .filter(function(x){ return screenAvailable(x[0])[x[1]]; });
+}
 function setAuto(on){
-  scr.auto=on;
+  scr.auto=!!on;
+  lsSet(LS+"auto", scr.auto?"1":"0");
   if(autoT){ clearInterval(autoT); autoT=null; }
-  if(on) autoT=setInterval(function(){
-    var order=[["team","gruppen"],["team","ko"],["einzel","gruppen"],["einzel","ko"]]
-      .filter(function(x){ return screenAvailable(x[0])[x[1]]; });
+  if(scr.auto) autoT=setInterval(function(){
+    var order=autoOrder();
     if(order.length<2){ renderScreen(); return; }
-    var i=0;
+    var i=-1;
     for(var j=0;j<order.length;j++) if(order[j][0]===scr.cls&&order[j][1]===scr.view) i=j;
     var nx=order[(i+1)%order.length];
     scr.cls=nx[0]; scr.view=nx[1]; renderScreen();
@@ -1786,6 +2041,7 @@ function renderAll(){
   renderChips(); renderTabs(); renderRoster(); renderControls(); renderGroups();
   renderBoardsPanel(); renderKo(); renderCalc(); renderSync();
   if($("screen").classList.contains("on")) renderScreen();
+  if($("results").classList.contains("on")) renderResults();
 }
 
 /* ============ Ereignisse ============ */
@@ -2034,6 +2290,16 @@ $("btn-sync").addEventListener("click",function(){
 });
 $("btn-role").addEventListener("click",function(){ if(confirm("Rolle wechseln? Die Turnierdaten bleiben erhalten.")) resetRole(); });
 $("s-role").addEventListener("click",function(){ if(confirm("Rolle wechseln? Die Turnierdaten bleiben erhalten.")) resetRole(); });
+$("btn-results").addEventListener("click",openResults);
+$("s-results").addEventListener("click",openResults);
+$("r-close").addEventListener("click",closeResults);
+$("r-print").addEventListener("click",function(){ renderResults(); setTimeout(function(){ window.print(); },60); });
+$("r-copy").addEventListener("click",function(){
+  var txt=resultsText();
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(function(){ toast("Ergebnisse kopiert."); },function(){ toast("Kopieren nicht möglich."); });
+  else toast("Kopieren nicht möglich.");
+});
 $("btn-screen").addEventListener("click",function(){ scr.cls=active; openScreen(); });
 $("s-close").addEventListener("click",closeScreen);
 $("s-team").addEventListener("click",function(){ scr.cls="team"; renderScreen(); });
@@ -2046,7 +2312,11 @@ $("s-full").addEventListener("click",function(){
   try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }
   catch(e){ toast("Vollbild hier nicht erlaubt — nimm F11."); }
 });
-document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&$("screen").classList.contains("on")) closeScreen(); });
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Escape") return;
+  if($("results").classList.contains("on")){ closeResults(); return; }
+  if($("screen").classList.contains("on")) closeScreen();
+});
 window.addEventListener("online", function(){ online=true; if(sb){ pull(); flush(); } if(netDirty) pushNet(); renderSync(); });
 window.addEventListener("offline",function(){ online=false; renderSync(); });
 window.addEventListener("storage",function(e){ if(e.key&&e.key.indexOf(LS)===0){ loadLocal(); renderAll(); } });
@@ -2065,6 +2335,10 @@ function initSync(){
     $("g-leit-note").textContent="Spieler, Auslosung, Ergebnisse — alles auf diesem Gerät.";
   }
   applyRole(); initFs(); renderAll();
+  /* Der Fernseher soll ohne Klick durchlaufen; wer es abschaltet,
+     bei dem bleibt es aus. */
+  var pref=lsGet(LS+"auto");
+  if(role==="anzeige" ? pref!=="0" : pref==="1") setAuto(true);
   if(sb){
     pull().then(function(){
       sb.channel("hhdt-docs")
