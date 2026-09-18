@@ -304,9 +304,15 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .screen.on{display:flex}
 
 /* Kopfleiste: schmal, immer sichtbar, ein Blick genügt. */
-.stopbar{display:grid; grid-template-columns:auto minmax(0,1fr) minmax(0,1.6fr) auto;
+.stopbar{display:grid; grid-template-columns:auto minmax(0,1fr) minmax(0,1.6fr) auto auto;
   gap:20px; align-items:center; padding:12px 26px; border-bottom:2px solid var(--brand);
   position:relative; flex:none}
+/* Immer erreichbar — auf dem Tablet gibt es kein :hover. */
+.stoggle{width:40px; height:40px; padding:0; cursor:pointer; border-radius:3px;
+  background:transparent; border:1px solid #2B363B; color:#55666E;
+  font-size:20px; line-height:1; justify-self:end}
+.stoggle:hover{color:#E9EFF1; border-color:#44555D}
+.screen.tools .stoggle{color:#E9EFF1; border-color:var(--brand)}
 .smark{width:clamp(30px,2.8vw,42px); flex:none; color:var(--brand)}
 .smark svg{display:block; width:100%; height:100%}
 .stitle{min-width:0}
@@ -325,9 +331,15 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 
 /* Werkzeuge blenden sich nur ein, wenn eine Maus in der Nähe ist. */
 .stools{position:absolute; right:26px; top:100%; margin-top:6px; z-index:3;
-  display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; max-width:70vw;
+  display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; max-width:78vw;
+  background:#161B1E; padding:6px; border:1px solid #2B363B; border-radius:3px;
   opacity:0; pointer-events:none; transition:opacity .18s}
-.screen:hover .stools,.stools:focus-within{opacity:1; pointer-events:auto}
+.screen.tools .stools,.stools:focus-within{opacity:1; pointer-events:auto}
+/* Zusätzlich bei Maus: erscheint schon beim Darüberfahren. */
+@media (hover:hover) and (pointer:fine){
+  .screen:hover .stools{opacity:1; pointer-events:auto}
+}
+.stools button{min-height:40px}
 .stools button{background:#1E262A; color:#94A4AD; border:1px solid #36444B; border-radius:3px;
   padding:5px 12px; cursor:pointer; font-size:13.5px}
 .stools button:hover{background:#2B363C; color:#E9EFF1}
@@ -703,6 +715,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     </div>
     <div class="sprog" id="s-prog"></div>
     <div class="sclock num" id="s-clock"></div>
+    <button class="stoggle" id="s-toggle" aria-label="Bedienung ein- und ausblenden" title="Bedienung">⋯</button>
     <div class="stools">
       <button id="s-jetzt" aria-pressed="false">Jetzt</button>
       <button id="s-gruppen" aria-pressed="false">Tabellen</button>
@@ -2024,6 +2037,12 @@ function renderScreen(){
       }).join("")+'</ol>'
     : '<span class="lb">Viel Erfolg allen Werferinnen und Werfern</span>';
 }
+var toolsT=null;
+function showTools(on){
+  $("screen").classList.toggle("tools",!!on);
+  if(toolsT){ clearTimeout(toolsT); toolsT=null; }
+  if(on) toolsT=setTimeout(function(){ $("screen").classList.remove("tools"); },20000);
+}
 function openScreen(){ $("screen").classList.add("on"); lsSet(LS+"screen","1"); renderScreen(); }
 function closeScreen(){
   if(role==="anzeige") return;
@@ -2338,6 +2357,10 @@ $("r-copy").addEventListener("click",function(){
   else toast("Kopieren nicht möglich.");
 });
 $("btn-screen").addEventListener("click",function(){ scr.cls=active; openScreen(); });
+$("s-toggle").addEventListener("click",function(){
+  showTools(!$("screen").classList.contains("tools"));
+});
+document.querySelector(".stools").addEventListener("click",function(){ showTools(true); });
 $("s-close").addEventListener("click",closeScreen);
 $("s-team").addEventListener("click",function(){ scr.cls="team"; renderScreen(); });
 $("s-einzel").addEventListener("click",function(){ scr.cls="einzel"; renderScreen(); });
