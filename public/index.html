@@ -51,6 +51,12 @@ input[type=checkbox]{accent-color:var(--brand); width:16px; height:16px}
 :focus-visible{outline:2px solid var(--red); outline-offset:2px; border-radius:3px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 body.viewonly .wrap{display:none}
+/* Fokus: alles ausblenden, womit man während des Turniers nur
+   aus Versehen etwas kaputt macht. */
+body.focus .setup{display:none !important}
+body.focus #f-sp,body.focus #f-calc,body.focus #f-sync{display:none}
+body.focus .mast{padding-bottom:10px; margin-bottom:14px}
+#btn-focus[aria-pressed="true"]{background:var(--brand); color:#fff; border-color:var(--brand)}
 body.gated .wrap,body.gated .screen{display:none!important}
 
 .wrap{max-width:1180px; margin:0 auto; padding:0 16px 64px}
@@ -293,102 +299,102 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .syncgrid .s1 b{font-family:"Barlow Condensed",sans-serif; font-size:18px; font-weight:600}
 .syncgrid .s1 b.ok{color:var(--green)} .syncgrid .s1 b.bad{color:var(--red)}
 
-.screen{position:fixed; inset:0; z-index:50; background:#161B1E; color:#E9EFF1; overflow:auto;
-  padding:20px 26px 30px; display:none; --brand:var(--brand-dark)}
-.screen.on{display:block}
-.screen .shead{display:flex; justify-content:space-between; align-items:flex-end; gap:18px;
-  border-bottom:2px solid var(--brand); padding-bottom:11px; margin-bottom:20px; flex-wrap:wrap;
-  position:relative; overflow:hidden}
-.sid{display:flex; gap:14px; align-items:flex-start; min-width:0}
-.smark{width:clamp(34px,3.4vw,50px); flex:none; color:var(--brand); margin-top:4px}
+.screen{position:fixed; inset:0; z-index:50; background:#161B1E; color:#E9EFF1;
+  display:none; flex-direction:column; --brand:var(--brand-dark)}
+.screen.on{display:flex}
+
+/* Kopfleiste: schmal, immer sichtbar, ein Blick genügt. */
+.stopbar{display:grid; grid-template-columns:auto minmax(0,1fr) minmax(0,1.6fr) auto;
+  gap:20px; align-items:center; padding:12px 26px; border-bottom:2px solid var(--brand);
+  position:relative; flex:none}
+.smark{width:clamp(30px,2.8vw,42px); flex:none; color:var(--brand)}
 .smark svg{display:block; width:100%; height:100%}
-.sorg{margin:0 0 3px; font-size:clamp(10px,1vw,12.5px); letter-spacing:.1em;
-  text-transform:uppercase; color:#7C8C95; font-weight:500}
-.swm{position:absolute; right:-18px; bottom:-30px; width:130px; color:var(--brand);
-  opacity:.06; pointer-events:none}
-.swm svg{display:block; width:100%; height:100%}
-.sright{display:flex; flex-direction:column; align-items:flex-end; gap:9px}
+.stitle{min-width:0}
+.sorg{margin:0 0 1px; font-size:clamp(9.5px,.85vw,11.5px); letter-spacing:.11em;
+  text-transform:uppercase; color:#7C8C95; font-weight:500; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis}
+.stopbar h2{margin:0; font-size:clamp(19px,2.2vw,30px); line-height:1.05}
 .sclock{font-family:"Barlow Condensed",sans-serif; font-weight:600; line-height:1;
-  font-size:clamp(24px,3.2vw,42px); color:#E9EFF1}
-.snotice{border-left:4px solid var(--brand); background:rgba(127,184,154,.10);
-  padding:11px 18px; margin-bottom:20px; font-size:clamp(18px,2.3vw,30px); font-weight:600;
-  display:none; overflow-wrap:anywhere}
-.snotice.on{display:block}
-.sprog{margin-bottom:22px}
-.sprog .pl{display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
-  font-size:clamp(12.5px,1.25vw,15px); color:#8FA79B; margin-bottom:6px; letter-spacing:.03em}
+  font-size:clamp(26px,3.4vw,46px); color:#E9EFF1; justify-self:end}
+.sprog{min-width:0}
+.sprog .pl{display:flex; justify-content:space-between; gap:14px;
+  font-size:clamp(11px,1.05vw,13.5px); color:#8FA79B; margin-bottom:5px; letter-spacing:.04em}
 .sprog .pl b{color:#E9EFF1; font-weight:600}
-.sprog .pb{height:5px; background:#232D32; border-radius:3px; overflow:hidden}
+.sprog .pb{height:4px; background:#232D32; border-radius:3px; overflow:hidden}
 .sprog .pb i{display:block; height:100%; background:var(--brand)}
-.sduo{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; align-items:start}
-@media (max-width:820px){ .sduo{grid-template-columns:minmax(0,1fr)} }
-.sfeed{list-style:none; margin:0; padding:0}
-.sfeed li{display:flex; gap:10px; align-items:baseline; padding:5px 0;
-  border-top:1px solid #232D32; font-size:clamp(13.5px,1.35vw,17px); color:#B9C6CC}
-.sfeed li:first-child{border-top:none}
-.sfeed .sc{font-family:"Barlow Condensed",sans-serif; font-weight:700; color:var(--brand);
-  font-variant-numeric:tabular-nums; flex:none; min-width:2.4em}
-.sfeed .wn{color:#E9EFF1; font-weight:600}
-.sfeed .tm{margin-left:auto; color:#6C7C85; font-size:.82em; flex:none; font-variant-numeric:tabular-nums}
-.sband{margin-bottom:22px}
-.sband > h3{margin:0 0 10px; font-size:clamp(12px,1.2vw,14px); color:#7C8C95;
-  letter-spacing:.1em; text-transform:uppercase; font-family:Barlow,sans-serif; font-weight:600}
-.screen h2{margin:0; font-size:clamp(24px,3.2vw,40px); line-height:1}
-.screen .ssub{color:#94A4AD; font-size:clamp(14px,1.3vw,17px); margin:5px 0 0}
-.screen .stools{display:flex; gap:7px; flex-wrap:wrap}
-.screen .stools button{background:#1E262A; color:#94A4AD; border:1px solid #36444B; border-radius:3px;
-  padding:5px 13px; cursor:pointer; font-size:14px; transition:background .12s,color .12s}
-.screen .stools button:hover{background:#2B363C; color:#E9EFF1}
-.screen .stools button[aria-pressed="true"]{background:#E9EFF1; color:#161B1E; border-color:#E9EFF1}
-.sgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:13px}
-.sblock + .sblock{margin-top:24px; padding-top:20px; border-top:1px solid #2B363B}
-.sblock > h3{margin:0 0 12px; font-size:clamp(17px,1.8vw,22px)}
-.sg1{border:1px solid #36444B; border-radius:3px}
-.sg1 h3{margin:0; padding:7px 12px; background:#1E262A; font-size:clamp(17px,1.7vw,22px); border-bottom:1px solid #36444B}
-.sg1 table{width:100%; border-collapse:collapse; font-size:clamp(14px,1.35vw,19px)}
-.sg1 td{padding:4px 12px; border-top:1px solid #232D32; text-align:right; font-variant-numeric:tabular-nums}
-.sg1 td:first-child{text-align:left; border-left:4px solid transparent; overflow-wrap:anywhere}
-.sg1 tr.q td:first-child{border-left-color:#43B571; font-weight:600}
-.snow{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px}
-.snow .row{border:1px solid #36444B; border-top:3px solid var(--brand); border-radius:3px;
-  background:#1E262A; padding:9px 14px 11px}
-.snow .row .b{font-family:"Barlow Condensed",sans-serif; font-size:clamp(13px,1.3vw,17px);
-  color:#8FA79B; letter-spacing:.03em}
-.snow .row .m{font-size:clamp(17px,2vw,27px); font-weight:600; line-height:1.15;
-  overflow-wrap:anywhere; margin-top:2px}
-.sready{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px}
-.sready .row{border:1px dashed var(--brand); border-radius:3px; padding:9px 14px 11px;
-  background:rgba(127,184,154,.06); display:flex; gap:12px; align-items:baseline}
+
+/* Werkzeuge blenden sich nur ein, wenn eine Maus in der Nähe ist. */
+.stools{position:absolute; right:26px; top:100%; margin-top:6px; z-index:3;
+  display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; max-width:70vw;
+  opacity:0; pointer-events:none; transition:opacity .18s}
+.screen:hover .stools,.stools:focus-within{opacity:1; pointer-events:auto}
+.stools button{background:#1E262A; color:#94A4AD; border:1px solid #36444B; border-radius:3px;
+  padding:5px 12px; cursor:pointer; font-size:13.5px}
+.stools button:hover{background:#2B363C; color:#E9EFF1}
+.stools button[aria-pressed="true"]{background:#E9EFF1; color:#161B1E; border-color:#E9EFF1}
+
+.snotice{border-left:5px solid var(--brand); background:rgba(127,184,154,.12);
+  padding:12px 26px; font-size:clamp(19px,2.4vw,32px); font-weight:600; display:none;
+  overflow-wrap:anywhere; flex:none}
+.snotice.on{display:block}
+
+.smain{flex:1; min-height:0; overflow:auto; padding:22px 26px}
+.sfoot{margin-top:24px}
+.sfoot > h3,.smain > section > h3{margin:0 0 11px; font-size:clamp(12px,1.15vw,14px);
+  color:#7C8C95; letter-spacing:.11em; text-transform:uppercase;
+  font-family:Barlow,sans-serif; font-weight:600}
+
+/* Bildschirm „Jetzt": die Scheiben groß, Warteschlange klein darunter. */
+.snow{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px}
+.snow .row{border:1px solid #36444B; border-top:4px solid var(--brand); border-radius:3px;
+  background:#1E262A; padding:14px 18px 17px}
+.snow .row .b{font-family:"Barlow Condensed",sans-serif; font-size:clamp(14px,1.5vw,19px);
+  color:#8FA79B; letter-spacing:.04em}
+.snow .row .m{font-size:clamp(21px,2.8vw,40px); font-weight:600; line-height:1.12;
+  overflow-wrap:anywhere; margin-top:5px}
+.sready{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:11px}
+.sready .row{border:1px dashed #44555D; border-radius:3px; padding:8px 13px 10px;
+  display:flex; gap:11px; align-items:baseline}
 .sready .row .n{font-family:"Barlow Condensed",sans-serif; font-weight:700; color:var(--brand);
-  font-size:clamp(19px,2.1vw,28px); line-height:1; flex:none; font-variant-numeric:tabular-nums}
-.sready .row .m{font-size:clamp(16px,1.85vw,24px); font-weight:600; line-height:1.15; overflow-wrap:anywhere}
-.sready .row .w{display:block; font-size:.62em; font-weight:400; color:#8FA79B; margin-top:3px}
-.snext{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:7px 26px}
-.snext li{display:flex; gap:9px; font-size:clamp(13.5px,1.35vw,17px); color:#B9C6CC}
-.snext li span{min-width:0; overflow-wrap:anywhere}
-.snext li em{font-style:normal; color:#6C7C85; font-size:.82em; display:block}
-.sempty{color:#6C7C85; font-size:15px; padding:8px 0}
+  font-size:clamp(16px,1.7vw,22px); line-height:1; flex:none; font-variant-numeric:tabular-nums}
+.sready .row .m{font-size:clamp(14px,1.5vw,20px); line-height:1.15; overflow-wrap:anywhere}
+.sready .row .w{display:block; font-size:.66em; color:#7C8C95; margin-top:2px}
+
+.sgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px}
+.sg1{border:1px solid #36444B; border-radius:3px}
+.sg1 h3{margin:0; padding:8px 13px; background:#1E262A; font-size:clamp(17px,1.8vw,24px);
+  border-bottom:1px solid #36444B}
+.sg1 table{width:100%; border-collapse:collapse; font-size:clamp(14px,1.5vw,21px)}
+.sg1 td{padding:5px 13px; border-top:1px solid #232D32; text-align:right; font-variant-numeric:tabular-nums}
+.sg1 td:first-child{text-align:left; border-left:4px solid transparent; overflow-wrap:anywhere}
+.sg1 tr.q td:first-child{border-left-color:var(--brand); font-weight:600}
+
+/* Fußzeile: ein einziger Laufstreifen statt einer zweiten Spalte. */
+.sticker{flex:none; display:flex; align-items:baseline; gap:16px; padding:10px 26px;
+  border-top:1px solid #2B363B; background:#1A2125; overflow:hidden}
+.sticker .lb{font-size:clamp(10.5px,1vw,12.5px); letter-spacing:.11em; text-transform:uppercase;
+  color:#7C8C95; font-weight:600; flex:none}
+.sticker ol{list-style:none; margin:0; padding:0; display:flex; gap:10px 28px;
+  flex-wrap:nowrap; overflow:hidden; min-width:0}
+.sticker li{display:flex; gap:8px; align-items:baseline; white-space:nowrap;
+  font-size:clamp(13px,1.3vw,17px); color:#B9C6CC}
+.sticker .sc{font-family:"Barlow Condensed",sans-serif; font-weight:700; color:var(--brand);
+  font-variant-numeric:tabular-nums}
+.sticker .wn{color:#E9EFF1; font-weight:600}
+.sempty{color:#6C7C85; font-size:clamp(15px,1.6vw,20px); padding:10px 0}
+
 .screen .koscroll .kom{background:#1E262A; border-color:#36444B}
-.screen .koscroll .kom.live{border-left-color:#43B571}
-.screen .koscroll .kop{font-size:clamp(14px,1.4vw,18px)}
+.screen .koscroll .kom.live{border-left-color:var(--brand)}
+.screen .koscroll .kop{font-size:clamp(14px,1.5vw,19px)}
 .screen .koscroll .kop + .kop{border-top-color:#232D32}
 .screen .koscroll .kop.tbd span{color:#6C7C85}
 .screen .koscroll .kop b{color:#6C7C85}
-.screen .koscroll .kop.win b{color:#43B571}
-.screen .koround > h4{color:#E9EFF1; font-size:16px}
+.screen .koscroll .kop.win b{color:var(--brand)}
+.screen .koround{flex:0 0 clamp(200px,17vw,260px)}
+.screen .koround > h4{color:#E9EFF1; font-size:clamp(15px,1.5vw,19px)}
 .screen .koround > h4 span{color:#6C7C85}
-.screen .champ{background:#1E262A; border-color:#43B571; color:#E9EFF1}
+.screen .champ{background:#1E262A; border-color:var(--brand); color:#E9EFF1}
 .screen .champ em,.screen .champ .pl{color:#94A4AD}
-
-.gate{position:fixed; inset:0; z-index:80; background:var(--bg); display:none; align-items:center; justify-content:center; padding:24px}
-.gate.on{display:flex}
-.gatebox{max-width:420px; width:100%}
-.gatebox h1{font-size:clamp(26px,5vw,38px); margin:0 0 4px; line-height:1}
-.gatebox > p{color:var(--ink-dim); font-size:14.5px; margin:0 0 20px}
-.gatebox .opt{border:1px solid var(--line); border-radius:3px; padding:14px; margin-bottom:11px; background:var(--surface)}
-.gatebox .opt h2{margin:0 0 3px; font-size:19px}
-.gatebox .opt p{margin:0 0 11px; font-size:13.5px; color:var(--ink-dim)}
-.gateerr{color:var(--red); font-size:13.5px; margin-top:8px; min-height:19px}
 
 /* ---------- Ergebnisseite ---------- */
 .results{position:fixed; inset:0; z-index:60; background:var(--bg); color:var(--ink);
@@ -555,13 +561,14 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     </button>
     <button class="btn ghost" id="btn-screen">Anzeige starten</button>
     <button class="btn ghost" id="btn-results">Ergebnisse</button>
+    <button class="btn ghost" id="btn-focus" aria-pressed="false" title="Blendet alles aus, was während des Turniers nicht gebraucht wird">Fokus</button>
   </div>
 
   <section class="panel" aria-labelledby="h-los">
     <header><h2 id="h-los">Gruppenphase</h2><span class="sub" id="los-sub"></span></header>
     <div class="pbody">
       <div class="bar"><i id="prog" style="width:0%"></i></div>
-      <div class="ctrls">
+      <div class="ctrls setup">
         <div class="ctrl"><label for="sel-size">Gruppengröße</label>
           <select id="sel-size"><option value="3">3er</option><option value="4">4er</option><option value="5">5er</option><option value="6">6er</option></select></div>
         <div class="ctrl"><label for="sel-qual">Weiter pro Gruppe</label>
@@ -569,8 +576,8 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
         <div class="ctrl"><label for="sel-tie">Bei Punktgleichheit</label>
           <select id="sel-tie"><option value="legdiff">Legdifferenz zuerst</option><option value="h2h">Direkter Vergleich zuerst</option></select></div>
       </div>
-      <label class="chkline"><input type="checkbox" id="chk-present"> Nur anwesende Teilnehmer auslosen</label>
-      <div class="field">
+      <label class="chkline setup"><input type="checkbox" id="chk-present"> Nur anwesende Teilnehmer auslosen</label>
+      <div class="field setup">
         <button class="btn" id="btn-draw">Gruppen auslosen</button>
         <button class="btn ghost" id="btn-copy">Tabellen kopieren</button>
         <button class="btn danger" id="btn-reset">Ergebnisse zurücksetzen</button>
@@ -591,7 +598,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
         <button class="btn" id="btn-fill">Freie Scheiben belegen</button>
         <button class="btn ghost" id="btn-freeall">Alle freigeben</button>
       </div>
-      <label class="chkline"><input type="checkbox" id="chk-autofill"> Nach jedem Ergebnis automatisch die nächste Partie aufrufen</label>
+      <label class="chkline setup"><input type="checkbox" id="chk-autofill"> Nach jedem Ergebnis automatisch die nächste Partie aufrufen</label>
       <div id="bd-wrap"></div>
     </div>
   </section>
@@ -599,7 +606,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   <section class="panel" aria-labelledby="h-ko">
     <header><h2 id="h-ko">KO&#8209;Runde</h2><span class="sub" id="ko-sub"></span></header>
     <div class="pbody">
-      <div class="field" style="margin-bottom:14px">
+      <div class="field setup" style="margin-bottom:14px">
         <button class="btn" id="btn-buildko">KO&#8209;Baum setzen</button>
         <select id="sel-kodraw" style="width:auto">
           <option value="seeded">Gesetzt nach Gruppenplatz</option>
@@ -632,6 +639,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <div class="syncgrid" id="syncgrid"></div>
 
       <h4>Läuft automatisch</h4>
+      <label class="chkline"><input type="checkbox" id="chk-autodl"> Am Ende jedes Abschnitts automatisch eine Datei herunterladen</label>
       <div class="field">
         <button class="btn" id="btn-fs">Sicherungsdatei wählen</button>
         <button class="btn ghost" id="btn-nettest">Serversicherung prüfen</button>
@@ -670,53 +678,30 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 </div>
 
 <div class="screen" id="screen" role="region" aria-label="Anzeige">
-  <div class="shead">
-    <span class="swm"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
-    <div class="sid">
-      <span class="smark"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
-      <div>
-        <p class="sorg">St.-Antonius-Schützenbruderschaft Hartefeld · seit 1453</p>
-        <h2 id="s-title">Anzeige</h2>
-        <p class="ssub" id="s-sub"></p>
-      </div>
+  <div class="stopbar">
+    <span class="smark"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
+    <div class="stitle">
+      <p class="sorg">St.-Antonius-Schützenbruderschaft Hartefeld</p>
+      <h2 id="s-title">Anzeige</h2>
     </div>
-    <div class="sright">
-      <div class="sclock num" id="s-clock"></div>
-      <div class="stools">
-      <button id="s-team" aria-pressed="false">Team</button>
-      <button id="s-einzel" aria-pressed="false">Einzel</button>
+    <div class="sprog" id="s-prog"></div>
+    <div class="sclock num" id="s-clock"></div>
+    <div class="stools">
+      <button id="s-jetzt" aria-pressed="false">Jetzt</button>
       <button id="s-gruppen" aria-pressed="false">Tabellen</button>
       <button id="s-ko" aria-pressed="false">Baum</button>
-      <button id="s-both" aria-pressed="false">Beides</button>
+      <button id="s-team" aria-pressed="false">Team</button>
+      <button id="s-einzel" aria-pressed="false">Einzel</button>
       <button id="s-auto" aria-pressed="false">Auto</button>
       <button id="s-full">Vollbild</button>
       <button id="s-results">Ergebnisse</button>
       <button id="s-role">Rolle</button>
       <button id="s-close">Schließen</button>
-      </div>
     </div>
   </div>
   <div class="snotice" id="s-notice"></div>
-  <div class="sprog" id="s-prog"></div>
-  <section class="sband">
-    <h3>Jetzt auf den Scheiben</h3>
-    <div class="snow" id="s-now"></div>
-  </section>
-  <section class="sband" id="s-readyband">
-    <h3>Gleich dran — bitte bereithalten</h3>
-    <div class="sready" id="s-ready"></div>
-  </section>
-  <div class="sduo">
-    <section class="sband" id="s-laterband">
-      <h3>Danach</h3>
-      <ol class="snext" id="s-next"></ol>
-    </section>
-    <section class="sband" id="s-feedband">
-      <h3>Zuletzt gespielt</h3>
-      <ol class="sfeed" id="s-feed"></ol>
-    </section>
-  </div>
-  <div id="s-main"></div>
+  <div class="smain" id="s-main"></div>
+  <div class="sticker" id="s-ticker"></div>
 </div>
 
 <script src="./config.js"></script>
@@ -735,11 +720,11 @@ var DOCS=["meta","roster","team","einzel"];
 
 var DEFR={players:[],teams:[]};
 var DEFC={groups:null,groupSize:4,onlyPresent:false,results:{},ko:null};
-var DEFM={boards:4,feed:[],notice:"",mg:10,mk:15,pause:15,qualifiers:2,tiebreak:"legdiff",koDraw:"seeded",assign:{},autoFill:true};
+var DEFM={boards:4,feed:[],notice:"",autoDownload:true,mg:10,mk:15,pause:15,qualifiers:2,tiebreak:"legdiff",koDraw:"seeded",assign:{},autoFill:true};
 var S={meta:Object.assign({},DEFM), roster:{players:[],teams:[]},
        einzel:Object.assign({},DEFC), team:Object.assign({},DEFC)};
 var active="team";
-var scr={cls:"team", view:"ko", auto:false};
+var scr={cls:"team", view:"jetzt", auto:false};
 var autoT=null;
 
 var sb=null, role="", pin="", device="";
@@ -1343,6 +1328,7 @@ function setResult(key,d,v){
   pruneAssign();
   if(val && S.meta.autoFill!==false) assignFree(key);
   persist(key); persist("meta"); renderAll();
+  checkMilestones();
 }
 
 /* Kurzes Gedächtnis der zuletzt gespielten Partien — Futter für den
@@ -1705,6 +1691,7 @@ function renderControls(){
   $("sel-kodraw").value=S.meta.koDraw;
   $("chk-present").checked=!!c.onlyPresent;
   $("chk-autofill").checked=S.meta.autoFill!==false;
+  $("chk-autodl").checked=S.meta.autoDownload!==false;
   if(document.activeElement!==$("in-notice")) $("in-notice").value=S.meta.notice||"";
   [["in-boards","boards"],["in-mg","mg"],["in-mk","mk"],["in-pause","pause"]].forEach(function(x){
     if(document.activeElement!==$(x[0])) $(x[0]).value=S.meta[x[1]];
@@ -1715,7 +1702,7 @@ function renderSync(){
   var st=syncState(), rows="";
   rows+='<div class="s1"><span>Rolle</span><b>'+(role==="leitung"?"Leitung":(role==="anzeige"?"Anzeige":"—"))+'</b></div>';
   rows+='<div class="s1"><span>Server</span><b class="'+(st.cls==="ok"?"ok":(st.cls==="warn"?"bad":""))+'">'+esc(st.short)+'</b></div>';
-  var fsTxt={on:"läuft",ask:"pausiert",off:"aus",unsupported:"n. verfügbar"}[fsState]||"aus";
+  var fsTxt={on:"läuft",ask:"pausiert",off:"aus",unsupported:"nur in Chrome"}[fsState]||"aus";
   rows+='<div class="s1"><span>Datei</span><b class="'+(fsState==="on"?"ok":(fsState==="ask"?"bad":""))+'">'+fsTxt+(fsAt?" · "+clock(new Date(fsAt)):"")+'</b></div>';
   rows+='<div class="s1"><span>Serversicherung</span><b class="'+(netErr?"bad":(netAt?"ok":""))+'">'+(netKey()?(netErr||(netAt?clock(new Date(netAt)):"wartet")):"aus")+'</b></div>';
   rows+='<div class="s1"><span>Seit Sicherung</span><b class="'+(backupDue()?"bad":"")+'">'+sinceBackup()+'</b></div>';
@@ -1744,6 +1731,33 @@ function renderSync(){
     ? "Eingaben landen sofort im Browser und werden danach an Supabase geschickt."
     : "Eingaben landen sofort im Browser. Sicherung läuft über Datei und Server-Function.";
   if($("chips")) renderChips();
+}
+
+/* Am Ende jedes Abschnitts einmal eine Datei ablegen. Das läuft im
+   Klick-Ereignis des Ergebnisses, deshalb lassen Browser den Download zu.
+   Höchstens vier Dateien pro Abend, keine Flut. */
+var MS_LABEL={"team-gruppen":"Team-Gruppenphase","team-ko":"Team-KO-Runde",
+              "einzel-gruppen":"Einzel-Gruppenphase","einzel-ko":"Einzel-KO-Runde"};
+function reachedMilestones(){
+  var m=[];
+  if(S.team.groups&&groupsComplete("team")) m.push("team-gruppen");
+  if(S.team.ko&&classDone("team")) m.push("team-ko");
+  if(S.einzel.groups&&groupsComplete("einzel")) m.push("einzel-gruppen");
+  if(S.einzel.ko&&classDone("einzel")) m.push("einzel-ko");
+  return m;
+}
+function checkMilestones(){
+  if(role!=="leitung"||S.meta.autoDownload===false) return;
+  var seen=[]; try{ seen=JSON.parse(lsGet(LS+"ms")||"[]")||[]; }catch(e){}
+  var now=reachedMilestones();
+  for(var i=0;i<now.length;i++){
+    if(seen.indexOf(now[i])<0){
+      seen.push(now[i]); lsSet(LS+"ms",JSON.stringify(seen));
+      downloadBackup(now[i]);
+      toast(MS_LABEL[now[i]]+" abgeschlossen — Sicherung wurde heruntergeladen.");
+      return;
+    }
+  }
 }
 
 /* ============ Ergebnisse ============ */
@@ -1924,87 +1938,74 @@ function screenTables(k){
   });
   return o+'</div>';
 }
+/* Ein Bildschirm, eine Aussage. Der Rest wandert in den Durchlauf. */
+function screenNow(){
+  var a=assignMap(), rows="";
+  for(var n=1;n<=S.meta.boards;n++){
+    var d=a[String(n)]; if(!d) continue;
+    var sd=dSides(d); if(!sd[0]||!sd[1]) continue;
+    rows+='<div class="row"><div class="b">Scheibe '+n+' · '+esc(dMode(d))+'</div>'
+       +'<div class="m">'+esc(nameOf(d.cls,sd[0]))+'<br>'+esc(nameOf(d.cls,sd[1]))+'</div></div>';
+  }
+  var o='<section>'+(rows?'<div class="snow">'+rows+'</div>'
+        :'<p class="sempty">Keine Partie zugeteilt.</p>')+'</section>';
+
+  var taken=assignedKeys(), queue=[];
+  ["team","einzel"].forEach(function(k){
+    openMatches(k).forEach(function(d){ if(!taken[dKey(d)]) queue.push(d); });
+  });
+  var ready=queue.slice(0,S.meta.boards);
+  if(ready.length){
+    o+='<section class="sfoot"><h3>Gleich dran — bitte bereithalten</h3><div class="sready">'
+      +ready.map(function(d,i){
+        var sd=dSides(d);
+        return '<div class="row"><span class="n">'+(i+1)+'</span><span class="m">'
+          +esc(nameOf(d.cls,sd[0]))+' – '+esc(nameOf(d.cls,sd[1]))
+          +'<span class="w">'+esc(dNo(d))+' · '+esc(dWhere(d))+'</span></span></div>';
+      }).join("")+'</div></section>';
+  }
+  return o;
+}
 function renderScreen(){
   var k=scr.cls, av=screenAvailable(k);
-  if(scr.view==="ko"&&!av.ko) scr.view= av.gruppen?"gruppen":"ko";
-  if(scr.view==="gruppen"&&!av.gruppen&&av.ko) scr.view="ko";
-  $("s-team").setAttribute("aria-pressed",k==="team"?"true":"false");
-  $("s-einzel").setAttribute("aria-pressed",k==="einzel"?"true":"false");
+  if(scr.view==="ko"&&!av.ko) scr.view=av.gruppen?"gruppen":"jetzt";
+  if(scr.view==="gruppen"&&!av.gruppen) scr.view=av.ko?"ko":"jetzt";
+
+  $("s-jetzt").setAttribute("aria-pressed",scr.view==="jetzt"?"true":"false");
   $("s-gruppen").setAttribute("aria-pressed",scr.view==="gruppen"?"true":"false");
   $("s-ko").setAttribute("aria-pressed",scr.view==="ko"?"true":"false");
-  $("s-both").setAttribute("aria-pressed",scr.view==="both"?"true":"false");
+  $("s-team").setAttribute("aria-pressed",k==="team"?"true":"false");
+  $("s-einzel").setAttribute("aria-pressed",k==="einzel"?"true":"false");
   $("s-auto").setAttribute("aria-pressed",scr.auto?"true":"false");
 
-  var titleBit = scr.view==="ko"?"KO-Runde":(scr.view==="both"?"Gesamtstand":"Gruppenphase");
-  $("s-title").textContent=clsName(k)+" — "+titleBit;
-
+  $("s-title").textContent = scr.view==="jetzt" ? "Jetzt auf den Scheiben"
+    : clsName(k)+" — "+(scr.view==="ko"?"KO-Runde":"Gruppentabellen");
   $("s-clock").textContent=clock(new Date());
+
   var nt=(S.meta.notice||"").trim();
   $("s-notice").className = nt ? "snotice on" : "snotice";
   $("s-notice").textContent = nt;
 
   var pr=overallProgress();
-  var tlv=buildTimeline();
   $("s-prog").innerHTML = pr.total
     ? '<div class="pl"><span><b>'+esc(currentPhase())+'</b></span>'
       +'<span>Spiel <b>'+pr.done+'</b> von <b>'+pr.total+'</b></span>'
-      +'<span>Ende gegen <b>'+clock(tlv.end)+'</b></span></div>'
+      +'<span>Ende gegen <b>'+clock(buildTimeline().end)+'</b></span></div>'
       +'<div class="pb"><i style="width:'+Math.min(100,pr.done/pr.total*100)+'%"></i></div>'
     : "";
 
-  var st=syncState(), tail=" · "+(fsState==="on"?"gesichert":st.short), main=$("s-main"), o="";
-  if(!av.gruppen&&!av.ko){ $("s-sub").textContent="Noch nicht ausgelost."+tail; main.innerHTML=""; }
-  else{
-    var done=0, all=0;
-    if(av.gruppen) S[k].groups.forEach(function(g){ done+=playedIn(k,g); all+=pairsOf(g).length; });
-    $("s-sub").textContent=(av.gruppen?(S[k].groups.length+" Gruppen · "+done+" von "+all+" Spielen · "+S.meta.qualifiers+" weiter"):"KO-Runde")+tail;
-    if(scr.view!=="ko"&&av.gruppen) o+='<div class="sblock"><h3>Gruppentabellen</h3>'+screenTables(k)+'</div>';
-    if(scr.view!=="gruppen"&&av.ko) o+='<div class="sblock"><h3>KO-Baum</h3>'+koHtml(k,false)+'</div>';
-    main.innerHTML=o;
-  }
+  var main=$("s-main");
+  if(scr.view==="jetzt") main.innerHTML=screenNow();
+  else if(scr.view==="ko") main.innerHTML=av.ko?koHtml(k,false):'<p class="sempty">Baum noch nicht gesetzt.</p>';
+  else main.innerHTML=av.gruppen?screenTables(k):'<p class="sempty">Noch nicht ausgelost.</p>';
 
-  var a=assignMap(), rows="";
-  for(var n=1;n<=S.meta.boards;n++){
-    var d=a[String(n)]; if(!d) continue;
-    var s=dSides(d); if(!s[0]||!s[1]) continue;
-    rows+='<div class="row"><div class="b">Scheibe '+n+' · '+esc(dNo(d))+' · '+esc(dMode(d))+'</div>'
-       +'<div class="m">'+esc(nameOf(d.cls,s[0]))+' – '+esc(nameOf(d.cls,s[1]))+'</div></div>';
-  }
-  $("s-now").innerHTML=rows||'<p class="sempty">Keine Partie zugeteilt.</p>';
-
-  /* Die ersten so vielen Partien, wie es Scheiben gibt, rücken als Nächstes
-     nach — die werden hervorgehoben, der Rest steht klein darunter. */
-  var taken=assignedKeys();
-  var queue=openMatches(k).filter(function(d){ return !taken[dKey(d)]; });
-  var ready=queue.slice(0,S.meta.boards), later=queue.slice(S.meta.boards,S.meta.boards+8);
-
-  $("s-readyband").style.display = ready.length ? "" : "none";
-  $("s-ready").innerHTML = ready.map(function(d,i){
-    var s2=dSides(d);
-    return '<div class="row"><span class="n">'+(i+1)+'</span><span class="m">'
-      +esc(nameOf(d.cls,s2[0]))+' – '+esc(nameOf(d.cls,s2[1]))
-      +'<span class="w">'+esc(dNo(d))+' · '+esc(dWhere(d))+' · '+esc(dMode(d))+'</span></span></div>';
-  }).join("");
-
-  $("s-laterband").style.display = later.length ? "" : "none";
-  $("s-next").innerHTML = later.map(function(d,i){
-    var s2=dSides(d);
-    return '<li><span>'+(S.meta.boards+i+1)+' · '+esc(nameOf(d.cls,s2[0]))+' – '+esc(nameOf(d.cls,s2[1]))
-      +'<em>'+esc(dNo(d))+' · '+esc(dWhere(d))+'</em></span></li>';
-  }).join("");
-
-  if(!queue.length){
-    $("s-readyband").style.display="";
-    $("s-ready").innerHTML='<p class="sempty">Alle Partien laufen oder sind gespielt.</p>';
-  }
-
-  var feed=(S.meta.feed||[]).slice(0,6);
-  $("s-feedband").style.display = feed.length ? "" : "none";
-  $("s-feed").innerHTML = feed.map(function(f){
-    return '<li><span class="sc">2:'+f.ll+'</span><span><span class="wn">'
-      +esc(nameOf(f.cls,f.w))+'</span> schlägt '+esc(nameOf(f.cls,f.l))
-      +'</span><span class="tm">'+clock(new Date(f.at))+'</span></li>';
-  }).join("");
+  var feed=(S.meta.feed||[]).slice(0,5);
+  $("s-ticker").innerHTML = feed.length
+    ? '<span class="lb">Zuletzt</span><ol>'+feed.map(function(f){
+        return '<li><span class="sc">2:'+f.ll+'</span><span><span class="wn">'
+          +esc(nameOf(f.cls,f.w))+'</span> schlägt '+esc(nameOf(f.cls,f.l))+'</span></li>';
+      }).join("")+'</ol>'
+    : '<span class="lb">Viel Erfolg allen Werferinnen und Werfern</span>';
 }
 function openScreen(){ $("screen").classList.add("on"); lsSet(LS+"screen","1"); renderScreen(); }
 function closeScreen(){
@@ -2012,15 +2013,18 @@ function closeScreen(){
   $("screen").classList.remove("on"); lsSet(LS+"screen","0");
   if(autoT){ clearInterval(autoT); autoT=null; } scr.auto=false;
 }
-/* Reihenfolge des Durchlaufs. Steht die Ansicht auf „Beides", wird nur
-   zwischen Team und Einzel gewechselt — die getroffene Wahl bleibt. */
+/* „Jetzt" kehrt nach jeder anderen Ansicht zurück — das ist die,
+   die die Wartenden brauchen. */
 function autoOrder(){
-  if(scr.view==="both"){
-    return [["team","both"],["einzel","both"]].filter(function(x){
-      var a=screenAvailable(x[0]); return a.gruppen||a.ko; });
-  }
-  return [["team","gruppen"],["team","ko"],["einzel","gruppen"],["einzel","ko"]]
-    .filter(function(x){ return screenAvailable(x[0])[x[1]]; });
+  var pairs=[];
+  ["team","einzel"].forEach(function(c){
+    var a=screenAvailable(c);
+    if(a.gruppen) pairs.push([c,"gruppen"]);
+    if(a.ko) pairs.push([c,"ko"]);
+  });
+  var out=[["jetzt","jetzt"]];
+  pairs.forEach(function(p){ out.push(p); out.push(["jetzt","jetzt"]); });
+  return out;
 }
 function setAuto(on){
   scr.auto=!!on;
@@ -2029,10 +2033,13 @@ function setAuto(on){
   if(scr.auto) autoT=setInterval(function(){
     var order=autoOrder();
     if(order.length<2){ renderScreen(); return; }
+    var cur = scr.view==="jetzt" ? "jetzt|jetzt" : scr.cls+"|"+scr.view;
     var i=-1;
-    for(var j=0;j<order.length;j++) if(order[j][0]===scr.cls&&order[j][1]===scr.view) i=j;
+    for(var j=0;j<order.length;j++) if(order[j][0]+"|"+order[j][1]===cur){ i=j; break; }
     var nx=order[(i+1)%order.length];
-    scr.cls=nx[0]; scr.view=nx[1]; renderScreen();
+    if(nx[0]==="jetzt") scr.view="jetzt";
+    else { scr.cls=nx[0]; scr.view=nx[1]; }
+    renderScreen();
   },20000);
   renderScreen();
 }
@@ -2143,6 +2150,7 @@ $("sel-tie").addEventListener("change",function(){ S.meta.tiebreak=this.value; p
 $("sel-kodraw").addEventListener("change",function(){ S.meta.koDraw=this.value; persist("meta"); });
 $("chk-present").addEventListener("change",function(){ S[active].onlyPresent=this.checked; persist(active); renderAll(); });
 $("chk-autofill").addEventListener("change",function(){ S.meta.autoFill=this.checked; persist("meta"); renderAll(); });
+$("chk-autodl").addEventListener("change",function(){ S.meta.autoDownload=this.checked; persist("meta"); renderAll(); });
 
 function numInput(el,key,min,max,def){
   el.addEventListener("input",function(){
@@ -2253,15 +2261,18 @@ $("sel-netsnap").addEventListener("change",function(){
     applySnapshot(o) ? toast("Serverstand eingespielt.") : toast("Datei unbrauchbar.");
   },function(){ toast("Konnte nicht laden."); });
 });
-$("btn-backup").addEventListener("click",function(){
+function downloadBackup(tag){
   var url=URL.createObjectURL(new Blob([backupPayload()],{type:"application/json"}));
   var d=new Date(), pad=function(n){ return (n<10?"0":"")+n; };
   var a=document.createElement("a");
-  a.href=url; a.download="dartturnier-"+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"-"+pad(d.getHours())+pad(d.getMinutes())+".json";
+  a.href=url;
+  a.download="dartturnier-"+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())
+    +"-"+pad(d.getHours())+pad(d.getMinutes())+(tag?"-"+tag:"")+".json";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){ URL.revokeObjectURL(url); },2000);
-  clearSince(); renderSync(); toast("Sicherung gespeichert.");
-});
+  clearSince(); renderSync();
+}
+$("btn-backup").addEventListener("click",function(){ downloadBackup(""); toast("Sicherung gespeichert."); });
 $("in-restore").addEventListener("change",function(e){
   var f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
   var r=new FileReader();
@@ -2290,6 +2301,15 @@ $("btn-sync").addEventListener("click",function(){
 });
 $("btn-role").addEventListener("click",function(){ if(confirm("Rolle wechseln? Die Turnierdaten bleiben erhalten.")) resetRole(); });
 $("s-role").addEventListener("click",function(){ if(confirm("Rolle wechseln? Die Turnierdaten bleiben erhalten.")) resetRole(); });
+function setFocus(on){
+  document.body.classList.toggle("focus",!!on);
+  $("btn-focus").setAttribute("aria-pressed",on?"true":"false");
+  $("btn-focus").textContent = on ? "Fokus aus" : "Fokus";
+  lsSet(LS+"focus", on?"1":"0");
+}
+$("btn-focus").addEventListener("click",function(){
+  setFocus(!document.body.classList.contains("focus"));
+});
 $("btn-results").addEventListener("click",openResults);
 $("s-results").addEventListener("click",openResults);
 $("r-close").addEventListener("click",closeResults);
@@ -2304,9 +2324,9 @@ $("btn-screen").addEventListener("click",function(){ scr.cls=active; openScreen(
 $("s-close").addEventListener("click",closeScreen);
 $("s-team").addEventListener("click",function(){ scr.cls="team"; renderScreen(); });
 $("s-einzel").addEventListener("click",function(){ scr.cls="einzel"; renderScreen(); });
+$("s-jetzt").addEventListener("click",function(){ scr.view="jetzt"; renderScreen(); });
 $("s-gruppen").addEventListener("click",function(){ scr.view="gruppen"; renderScreen(); });
 $("s-ko").addEventListener("click",function(){ scr.view="ko"; renderScreen(); });
-$("s-both").addEventListener("click",function(){ scr.view="both"; renderScreen(); });
 $("s-auto").addEventListener("click",function(){ setAuto(!scr.auto); });
 $("s-full").addEventListener("click",function(){
   try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }
@@ -2334,7 +2354,7 @@ function initSync(){
     $("g-leit").textContent="Starten";
     $("g-leit-note").textContent="Spieler, Auslosung, Ergebnisse — alles auf diesem Gerät.";
   }
-  applyRole(); initFs(); renderAll();
+  applyRole(); initFs(); setFocus(lsGet(LS+"focus")==="1"); renderAll();
   /* Der Fernseher soll ohne Klick durchlaufen; wer es abschaltet,
      bei dem bleibt es aus. */
   var pref=lsGet(LS+"auto");
