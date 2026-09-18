@@ -334,11 +334,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; max-width:78vw;
   background:#161B1E; padding:6px; border:1px solid #2B363B; border-radius:3px;
   opacity:0; pointer-events:none; transition:opacity .18s}
-.screen.tools .stools,.stools:focus-within{opacity:1; pointer-events:auto}
-/* Zusätzlich bei Maus: erscheint schon beim Darüberfahren. */
-@media (hover:hover) and (pointer:fine){
-  .screen:hover .stools{opacity:1; pointer-events:auto}
-}
+.screen.tools .stools{opacity:1; pointer-events:auto}
 .stools button{min-height:40px}
 .stools button{background:#1E262A; color:#94A4AD; border:1px solid #36444B; border-radius:3px;
   padding:5px 12px; cursor:pointer; font-size:13.5px}
@@ -357,6 +353,14 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   font-family:Barlow,sans-serif; font-weight:600}
 
 /* Bildschirm „Jetzt": die Scheiben groß, Warteschlange klein darunter. */
+/* Schmale Dauerleiste der laufenden Partien — auch bei Tabellen und Baum. */
+.snowmini{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:9px;
+  padding:10px 26px; border-bottom:1px solid #2B363B; background:#1A2125; flex:none}
+.snowmini .row{display:flex; gap:9px; align-items:baseline; min-width:0}
+.snowmini .b{font-family:"Barlow Condensed",sans-serif; font-weight:700; color:var(--brand);
+  font-size:clamp(13px,1.2vw,16px); flex:none}
+.snowmini .m{font-size:clamp(13px,1.25vw,17px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.snowmini .e{color:#6C7C85; font-size:clamp(12px,1.1vw,14px)}
 .snow{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px}
 .snow .row{border:1px solid #36444B; border-top:4px solid var(--brand); border-radius:3px;
   background:#1E262A; padding:14px 18px 17px}
@@ -730,6 +734,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     </div>
   </div>
   <div class="snotice" id="s-notice"></div>
+  <div class="snowmini" id="s-mini"></div>
   <div class="smain" id="s-main"></div>
   <div class="sticker" id="s-ticker"></div>
 </div>
@@ -1101,7 +1106,24 @@ function cleanupGhosts(){
 /* ============ Gruppen ============ */
 function splitSizes(n,k){ var b=Math.floor(n/k),r=n%k,o=[]; for(var g=0;g<k;g++) o.push(b+(g<r?1:0)); return o; }
 function groupCount(n,size){ return Math.max(1,Math.ceil(n/size)); }
-function pairsOf(g){ var o=[]; for(var a=0;a<g.length;a++) for(var b=a+1;b<g.length;b++) o.push([g[a],g[b]]); return o; }
+/* Kreissystem: in jeder Runde spielt jeder genau einmal. Vorher lief die
+   Liste stur durch und der erste Name stand dreimal hintereinander an. */
+function pairsOf(g){
+  var n=g.length; if(n<2) return [];
+  var arr=g.slice(); if(n%2===1) arr.push(null);
+  var m=arr.length, half=m/2, out=[], rot=arr.slice(1);
+  for(var r=0;r<m-1;r++){
+    var cur=[arr[0]].concat(rot);
+    for(var i=0;i<half;i++){
+      var a=cur[i], b=cur[m-1-i];
+      if(a&&b) out.push([a,b]);
+    }
+    rot.unshift(rot.pop());
+  }
+  return out;
+}
+function roundsOf(n){ return n%2===1 ? n : n-1; }
+function perRound(n){ return Math.max(1,Math.floor(n/2)); }
 function mk(a,b){ return a<b ? a+"~"+b : b+"~"+a; }
 function playedIn(key,g){ var n=0; pairsOf(g).forEach(function(pr){ if(S[key].results[mk(pr[0],pr[1])]) n++; }); return n; }
 function groupsComplete(key){
@@ -1252,11 +1274,20 @@ function koEntrantsAt(key,r){ return S[key].ko.slots.length/Math.pow(2,r); }
 /* ============ Partien ============ */
 function openMatches(key){
   var c=S[key], out=[];
-  if(c.groups) c.groups.forEach(function(g,gi){
-    pairsOf(g).forEach(function(pr){
-      if(!c.results[mk(pr[0],pr[1])]) out.push({cls:key,kind:"group",a:pr[0],b:pr[1],gi:gi});
+  if(c.groups){
+    /* Erst Runde 1 aller Gruppen, dann Runde 2 — so ist jeder einmal dran,
+       bevor jemand zum zweiten Mal wirft. */
+    var gm=[];
+    c.groups.forEach(function(g,gi){
+      var per=perRound(g.length);
+      pairsOf(g).forEach(function(pr,ix){
+        if(!c.results[mk(pr[0],pr[1])])
+          gm.push({cls:key,kind:"group",a:pr[0],b:pr[1],gi:gi,rd:Math.floor(ix/per)});
+      });
     });
-  });
+    gm.sort(function(x,y){ return x.rd!==y.rd ? x.rd-y.rd : x.gi-y.gi; });
+    out=out.concat(gm);
+  }
   if(c.ko){
     var R=koRoundCount(key);
     for(var r=0;r<R;r++){
@@ -2088,6 +2119,17 @@ function renderScreen(){
       +'<div class="pb"><i style="width:'+Math.min(100,pr.done/pr.total*100)+'%"></i></div>'
     : "";
 
+  /* Auf allen anderen Bildschirmen bleiben die laufenden Partien oben stehen. */
+  var mini="", am=assignMap();
+  for(var bn=1;bn<=S.meta.boards;bn++){
+    var md=am[String(bn)]; if(!md) continue;
+    var ms=dSides(md); if(!ms[0]||!ms[1]) continue;
+    mini+='<div class="row"><span class="b">'+bn+'</span><span class="m">'
+       +esc(nameOf(md.cls,ms[0]))+' – '+esc(nameOf(md.cls,ms[1]))+'</span></div>';
+  }
+  $("s-mini").style.display = (scr.view!=="jetzt"&&mini) ? "grid" : "none";
+  $("s-mini").innerHTML = mini || '<div class="row"><span class="e">Keine Partie zugeteilt.</span></div>';
+
   var main=$("s-main");
   if(scr.view==="jetzt") main.innerHTML=screenNow();
   else if(scr.view==="ko") main.innerHTML=av.ko?koHtml(k,false):'<p class="sempty">Baum noch nicht gesetzt.</p>';
@@ -2424,7 +2466,11 @@ $("btn-screen").addEventListener("click",function(){ scr.cls=active; openScreen(
 $("s-toggle").addEventListener("click",function(){
   showTools(!$("screen").classList.contains("tools"));
 });
-document.querySelector(".stools").addEventListener("click",function(){ showTools(true); });
+/* Ein Klick auf einen Knopf hält das Menü offen, „Schließen" des Menüs
+   macht nur der Schalter. */
+document.querySelector(".stools").addEventListener("click",function(e){
+  if(e.target.closest("button")) showTools(true);
+});
 $("s-close").addEventListener("click",closeScreen);
 $("s-team").addEventListener("click",function(){ scr.cls="team"; renderScreen(); });
 $("s-einzel").addEventListener("click",function(){ scr.cls="einzel"; renderScreen(); });
