@@ -396,6 +396,23 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .screen .champ{background:#1E262A; border-color:var(--brand); color:#E9EFF1}
 .screen .champ em,.screen .champ .pl{color:#94A4AD}
 
+/* ---------- Anmeldedialog ---------- */
+.gate{position:fixed; inset:0; z-index:80; background:var(--bg); display:none;
+  align-items:center; justify-content:center; padding:24px; overflow:auto}
+.gate.on{display:flex}
+.gatebox{max-width:420px; width:100%}
+.gatebox .mark{display:block; width:44px; height:44px; color:var(--brand); margin-bottom:12px}
+.gatebox .mark svg{display:block; width:100%; height:100%}
+.gatebox .org{font-size:11.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-faint); margin:0 0 5px; font-weight:500}
+.gatebox h1{font-size:clamp(26px,5vw,38px); margin:0 0 4px; line-height:1}
+.gatebox > p{color:var(--ink-dim); font-size:14.5px; margin:0 0 20px}
+.gatebox .opt{border:1px solid var(--line); border-radius:3px; padding:14px;
+  margin-bottom:11px; background:var(--surface)}
+.gatebox .opt h2{margin:0 0 3px; font-size:19px}
+.gatebox .opt p{margin:0 0 11px; font-size:13.5px; color:var(--ink-dim)}
+.gateerr{color:var(--red); font-size:13.5px; margin-top:8px; min-height:19px}
+
 /* ---------- Ergebnisseite ---------- */
 .results{position:fixed; inset:0; z-index:60; background:var(--bg); color:var(--ink);
   overflow:auto; padding:0 0 60px; display:none}

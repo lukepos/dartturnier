@@ -3,7 +3,7 @@
    der Seite, hier wird nur die App selbst zwischengespeichert.
    Bei Änderungen an index.html die VERSION hochzählen.            */
 
-var VERSION = "hhdt-v12";
+var VERSION = "hhdt-v13";
 var CORE = [
   "./",
   "./index.html",
