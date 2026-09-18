@@ -55,8 +55,8 @@ body.gated .wrap,body.gated .screen{display:none!important}
 .wrap{max-width:1180px; margin:0 auto; padding:0 16px 64px}
 .mast{border-bottom:2px solid var(--brand); padding:22px 0 13px; margin-bottom:18px;
   display:grid; grid-template-columns:auto minmax(0,1fr); gap:15px; align-items:start}
-.crest{width:38px; height:38px; margin-top:5px; color:var(--brand); flex:none}
-.crest svg{display:block; width:100%; height:100%}
+.mark{width:38px; height:38px; margin-top:5px; color:var(--brand); flex:none}
+.mark svg{display:block; width:100%; height:100%}
 .mast .org{font-size:11.5px; letter-spacing:.09em; text-transform:uppercase;
   color:var(--ink-faint); margin:0 0 5px; font-weight:500}
 .mast h1{font-size:clamp(30px,6.4vw,54px); line-height:.98; margin:0; font-weight:700}
@@ -74,12 +74,11 @@ body.gated .wrap,body.gated .screen{display:none!important}
   padding:11px 14px; box-shadow:var(--shadow)}
 .ctab .cname{font-family:"Barlow Condensed",sans-serif; font-size:21px; font-weight:600; display:block}
 .ctab .ccount{font-size:13.5px; color:var(--ink-dim)}
-.ctab[aria-selected="true"]{border-color:var(--ink); border-left-color:var(--brand)}
-.ctab .cname::before{content:""; display:inline-block; width:9px; height:9px; margin-right:8px;
-  border:2px solid var(--ink-faint); vertical-align:middle}
-.ctab[data-k="team"] .cname::before{background:var(--ink-faint)}
-.ctab[aria-selected="true"] .cname::before{border-color:var(--brand)}
-.ctab[data-k="team"][aria-selected="true"] .cname::before{background:var(--brand)}
+.ctab[aria-selected="true"]{border-color:var(--brand); border-left-color:var(--brand)}
+.ctab[aria-selected="true"] .cname{color:var(--brand)}
+.cmark{display:inline-block; width:22px; height:11px; margin-right:9px; color:var(--ink-faint); vertical-align:baseline}
+.cmark svg{display:block; width:100%; height:100%}
+.ctab[aria-selected="true"] .cmark{color:var(--brand)}
 .meter{height:4px; background:var(--line-soft); margin-top:8px; border-radius:2px; overflow:hidden}
 .meter i{display:block; height:100%; background:var(--ink-faint)}
 .ctab[aria-selected="true"] .meter i{background:var(--brand)}
@@ -101,6 +100,18 @@ body.gated .wrap,body.gated .screen{display:none!important}
 .field{display:flex; gap:8px; flex-wrap:wrap}
 input[type=text],input[type=password], select, textarea{background:var(--surface2); border:1px solid var(--line);
   border-radius:3px; padding:9px 11px; width:100%; min-width:0}
+input[type=text]:hover,input[type=password]:hover,textarea:hover{border-color:var(--ink-faint)}
+/* Eigene Dropdowns statt der Systemdarstellung: gleiche Höhe und Kante
+   wie die Eingabefelder, dezenter Pfeil rechts. */
+select{
+  -webkit-appearance:none; -moz-appearance:none; appearance:none;
+  padding-right:30px; cursor:pointer; line-height:1.3;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1.4 1.6 6 6.2l4.6-4.6' fill='none' stroke='%238A969C' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center; background-size:12px 8px;
+}
+select:hover{border-color:var(--ink-faint)}
+select:disabled{opacity:.45; cursor:not-allowed}
+select::-ms-expand{display:none}
 textarea{resize:vertical; min-height:84px; line-height:1.4}
 .btn{background:var(--brand); color:#fff; border:1px solid var(--brand); border-radius:3px;
   padding:9px 15px; cursor:pointer; font-weight:500; white-space:nowrap}
@@ -171,8 +182,9 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .mtch .who{overflow-wrap:anywhere; color:var(--ink-dim)}
 .mtch .who b{font-weight:600; color:var(--ink)}
 .mtch .who i{font-style:normal; color:var(--green); font-size:11.5px; margin-left:5px}
-.mtch select{width:auto; padding:3px 7px; font-size:13px; background:var(--surface)}
-.mv{border:none; background:transparent; color:var(--ink-faint); font-size:12px; padding:0 2px; width:auto; cursor:pointer}
+.mtch select{width:auto; padding:4px 24px 4px 8px; font-size:13px; background-color:var(--surface); background-position:right 7px center; background-size:10px 7px}
+.mv{border:1px solid var(--line-soft); background:transparent; color:var(--ink-faint); font-size:12px;
+  padding:2px 22px 2px 7px; width:auto; cursor:pointer; background-position:right 6px center; background-size:9px 6px}
 .mno{font-family:"Barlow Condensed",sans-serif; font-weight:600; color:var(--ink-faint); margin-right:6px; font-variant-numeric:tabular-nums}
 
 .bds{display:grid; grid-template-columns:repeat(auto-fill,minmax(258px,1fr)); gap:11px}
@@ -184,7 +196,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .bd .bdm{font-size:14px; margin:5px 0 3px; overflow-wrap:anywhere}
 .bd .bdw{font-size:11.5px; color:var(--ink-dim); margin-bottom:6px}
 .bd .field{gap:6px}
-.bd select{font-size:13px; padding:4px 7px}
+.bd select{font-size:13px; padding:5px 26px 5px 9px}
 .bd .free{color:var(--ink-faint); font-size:13.5px; margin:5px 0 7px}
 
 .koscroll{display:flex; gap:14px; overflow-x:auto; padding-bottom:10px; align-items:stretch}
@@ -200,7 +212,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .kop b{font-variant-numeric:tabular-nums; color:var(--ink-faint); flex:none}
 .kop.win{font-weight:600} .kop.win b{color:var(--green)}
 .kop.tbd span{color:var(--ink-faint)}
-.kom select{margin-top:6px; width:100%; padding:3px 6px; font-size:12.5px; background:var(--surface)}
+.kom select{margin-top:6px; width:100%; padding:4px 24px 4px 8px; font-size:12.5px; background-color:var(--surface); background-position:right 7px center; background-size:10px 7px}
 .kom .bye,.kom .wait{font-size:11.5px; color:var(--ink-faint); padding-top:3px}
 .kom .onbd{font-size:11.5px; color:var(--green); padding-top:4px}
 .kom .kno{font-size:11px; color:var(--ink-faint); font-family:"Barlow Condensed",sans-serif; font-weight:600}
@@ -214,8 +226,8 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .third > h4 span{display:block; font-family:Barlow,sans-serif; font-size:11.5px; font-weight:400; color:var(--ink-faint)}
 .champ{margin-top:16px; border:1px solid var(--brand); border-left:4px solid var(--brand);
   border-radius:3px; padding:11px 14px 13px; background:var(--surface2); position:relative}
-.champ .cx{position:absolute; right:12px; top:12px; width:30px; height:30px; color:var(--brand); opacity:.22}
-.champ .cx svg{width:100%; height:100%; display:block}
+.champ .mk{position:absolute; right:12px; top:12px; width:30px; height:30px; color:var(--brand); opacity:.22}
+.champ .mk svg{width:100%; height:100%; display:block}
 .champ em{font-style:normal; font-size:12.5px; color:var(--ink-dim); display:block}
 .champ b{font-family:"Barlow Condensed",sans-serif; font-size:clamp(22px,3vw,30px); font-weight:700; display:block; line-height:1.1}
 .champ .pl{font-size:14px; color:var(--ink-dim); margin-top:5px}
@@ -250,8 +262,8 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   border-bottom:2px solid var(--brand); padding-bottom:11px; margin-bottom:20px; flex-wrap:wrap;
   position:relative; overflow:hidden}
 .sid{display:flex; gap:14px; align-items:flex-start; min-width:0}
-.screst{width:clamp(34px,3.4vw,50px); flex:none; color:var(--brand); margin-top:4px}
-.screst svg{display:block; width:100%; height:100%}
+.smark{width:clamp(34px,3.4vw,50px); flex:none; color:var(--brand); margin-top:4px}
+.smark svg{display:block; width:100%; height:100%}
 .sorg{margin:0 0 3px; font-size:clamp(10px,1vw,12.5px); letter-spacing:.1em;
   text-transform:uppercase; color:#7C8C95; font-weight:500}
 .swm{position:absolute; right:-18px; bottom:-30px; width:130px; color:var(--brand);
@@ -264,7 +276,8 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .screen .ssub{color:#94A4AD; font-size:clamp(14px,1.3vw,17px); margin:5px 0 0}
 .screen .stools{display:flex; gap:7px; flex-wrap:wrap}
 .screen .stools button{background:#1E262A; color:#94A4AD; border:1px solid #36444B; border-radius:3px;
-  padding:5px 12px; cursor:pointer; font-size:14px}
+  padding:5px 13px; cursor:pointer; font-size:14px; transition:background .12s,color .12s}
+.screen .stools button:hover{background:#2B363C; color:#E9EFF1}
 .screen .stools button[aria-pressed="true"]{background:#E9EFF1; color:#161B1E; border-color:#E9EFF1}
 .sgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:13px}
 .sblock + .sblock{margin-top:24px; padding-top:20px; border-top:1px solid #2B363B}
@@ -319,7 +332,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 
 <div class="gate on" id="gate">
   <div class="gatebox">
-    <span class="crest" style="display:block;margin-bottom:12px" aria-hidden="true"><svg viewBox="0 0 100 100"><path fill="currentColor" d="M33 5 H67 L58 41 L95 32 V68 L58 59 L67 95 H33 L42 59 L5 68 V32 L42 41 Z"/></svg></span>
+    <span class="mark" style="display:block;margin-bottom:12px" aria-hidden="true"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
     <p class="org" style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 5px;font-weight:500">St.-Antonius-Schützenbruderschaft Hartefeld · seit 1453</p>
     <h1>4. Hartefelder Hobby&#8209;Dartturnier</h1>
     <p>Samstag, 17. Oktober 2026 · Zur Dorfschmiede, Hartefeld</p>
@@ -342,7 +355,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 
 <div class="wrap">
   <header class="mast">
-    <span class="crest" aria-hidden="true"><svg viewBox="0 0 100 100"><path fill="currentColor" d="M33 5 H67 L58 41 L95 32 V68 L58 59 L67 95 H33 L42 59 L5 68 V32 L42 41 Z"/></svg></span>
+    <span class="mark" aria-hidden="true"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
     <div>
       <p class="org">St.-Antonius-Schützenbruderschaft Hartefeld · seit 1453</p>
       <h1>4. Hartefelder Hobby&#8209;Dartturnier</h1>
@@ -398,12 +411,12 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   <div class="classbar" role="tablist" aria-label="Wettbewerb">
     <span class="lbl">Wettbewerb</span>
     <button class="ctab" data-k="team" role="tab" aria-selected="true">
-      <span class="cname">Team · Doppel</span>
+      <span class="cname"><span class="cmark"><svg viewBox="0 0 22 11" aria-hidden="true"><circle cx="5.5" cy="5.5" r="4.5" fill="currentColor"/><circle cx="16" cy="5.5" r="4.5" fill="currentColor"/></svg></span>Team · Doppel</span>
       <span class="ccount" id="cnt-team">0 von 32</span>
       <span class="meter"><i id="mtr-team" style="width:0%"></i></span>
     </button>
     <button class="ctab" data-k="einzel" role="tab" aria-selected="false">
-      <span class="cname">Einzel</span>
+      <span class="cname"><span class="cmark"><svg viewBox="0 0 22 11" aria-hidden="true"><circle cx="5.5" cy="5.5" r="4.5" fill="currentColor"/></svg></span>Einzel</span>
       <span class="ccount" id="cnt-einzel">0 von 32</span>
       <span class="meter"><i id="mtr-einzel" style="width:0%"></i></span>
     </button>
@@ -510,9 +523,9 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 
 <div class="screen" id="screen" role="region" aria-label="Anzeige">
   <div class="shead">
-    <span class="swm"><svg viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M33 5 H67 L58 41 L95 32 V68 L58 59 L67 95 H33 L42 59 L5 68 V32 L42 41 Z"/></svg></span>
+    <span class="swm"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
     <div class="sid">
-      <span class="screst"><svg viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M33 5 H67 L58 41 L95 32 V68 L58 59 L67 95 H33 L42 59 L5 68 V32 L42 41 Z"/></svg></span>
+      <span class="smark"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
       <div>
         <p class="sorg">St.-Antonius-Schützenbruderschaft Hartefeld · seit 1453</p>
         <h2 id="s-title">Anzeige</h2>
@@ -548,7 +561,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 (function(){
 "use strict";
 
-var CROSS_SVG='<svg viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M33 5 H67 L58 41 L95 32 V68 L58 59 L67 95 H33 L42 59 L5 68 V32 L42 41 Z"/></svg>';
+var MARK_SVG='<svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg>';
 var MAX=32, FEE=8;
 var DEADLINE=new Date(2026,9,11,23,59,59);
 var STARTTIME=new Date(2026,9,17,16,0,0);
@@ -1395,7 +1408,7 @@ function koHtml(key,editable){
   var champ=R?koWinner(key,R-1,0):null;
   if(champ){
     var runner=koLoser(key,R-1,0), third=ko.third?ko.third.w:null;
-    o+='<div class="champ"><span class="cx">'+CROSS_SVG+'</span><em>'+clsName(key)+' — Sieger</em><b>'+esc(nameOf(key,champ))+'</b>'
+    o+='<div class="champ"><span class="mk">'+MARK_SVG+'</span><em>'+clsName(key)+' — Sieger</em><b>'+esc(nameOf(key,champ))+'</b>'
       +'<div class="pl">2. '+(runner?esc(nameOf(key,runner)):"—")+(third?' · 3. '+esc(nameOf(key,third)):"")+'</div></div>';
   }
   return o;
