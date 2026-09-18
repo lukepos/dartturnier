@@ -307,6 +307,29 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .swm{position:absolute; right:-18px; bottom:-30px; width:130px; color:var(--brand);
   opacity:.06; pointer-events:none}
 .swm svg{display:block; width:100%; height:100%}
+.sright{display:flex; flex-direction:column; align-items:flex-end; gap:9px}
+.sclock{font-family:"Barlow Condensed",sans-serif; font-weight:600; line-height:1;
+  font-size:clamp(24px,3.2vw,42px); color:#E9EFF1}
+.snotice{border-left:4px solid var(--brand); background:rgba(127,184,154,.10);
+  padding:11px 18px; margin-bottom:20px; font-size:clamp(18px,2.3vw,30px); font-weight:600;
+  display:none; overflow-wrap:anywhere}
+.snotice.on{display:block}
+.sprog{margin-bottom:22px}
+.sprog .pl{display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  font-size:clamp(12.5px,1.25vw,15px); color:#8FA79B; margin-bottom:6px; letter-spacing:.03em}
+.sprog .pl b{color:#E9EFF1; font-weight:600}
+.sprog .pb{height:5px; background:#232D32; border-radius:3px; overflow:hidden}
+.sprog .pb i{display:block; height:100%; background:var(--brand)}
+.sduo{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; align-items:start}
+@media (max-width:820px){ .sduo{grid-template-columns:minmax(0,1fr)} }
+.sfeed{list-style:none; margin:0; padding:0}
+.sfeed li{display:flex; gap:10px; align-items:baseline; padding:5px 0;
+  border-top:1px solid #232D32; font-size:clamp(13.5px,1.35vw,17px); color:#B9C6CC}
+.sfeed li:first-child{border-top:none}
+.sfeed .sc{font-family:"Barlow Condensed",sans-serif; font-weight:700; color:var(--brand);
+  font-variant-numeric:tabular-nums; flex:none; min-width:2.4em}
+.sfeed .wn{color:#E9EFF1; font-weight:600}
+.sfeed .tm{margin-left:auto; color:#6C7C85; font-size:.82em; flex:none; font-variant-numeric:tabular-nums}
 .sband{margin-bottom:22px}
 .sband > h3{margin:0 0 10px; font-size:clamp(12px,1.2vw,14px); color:#7C8C95;
   letter-spacing:.1em; text-transform:uppercase; font-family:Barlow,sans-serif; font-weight:600}
@@ -494,6 +517,11 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     <header><h2 id="h-bd">Scheiben</h2><span class="sub" id="bd-sub"></span></header>
     <div class="pbody">
       <div class="field" style="margin-bottom:10px">
+        <input type="text" id="in-notice" placeholder="Meldung für den Bildschirm — z.B. „Halbfinale in 10 Minuten“" autocomplete="off" style="flex:1 1 320px">
+        <button class="btn ghost" id="btn-notice">Anzeigen</button>
+        <button class="btn ghost" id="btn-notice-x">Weg</button>
+      </div>
+      <div class="field" style="margin-bottom:10px">
         <button class="btn" id="btn-fill">Freie Scheiben belegen</button>
         <button class="btn ghost" id="btn-freeall">Alle freigeben</button>
       </div>
@@ -577,7 +605,9 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
         <p class="ssub" id="s-sub"></p>
       </div>
     </div>
-    <div class="stools">
+    <div class="sright">
+      <div class="sclock num" id="s-clock"></div>
+      <div class="stools">
       <button id="s-team" aria-pressed="false">Team</button>
       <button id="s-einzel" aria-pressed="false">Einzel</button>
       <button id="s-gruppen" aria-pressed="false">Tabellen</button>
@@ -587,8 +617,11 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <button id="s-full">Vollbild</button>
       <button id="s-role">Rolle</button>
       <button id="s-close">Schließen</button>
+      </div>
     </div>
   </div>
+  <div class="snotice" id="s-notice"></div>
+  <div class="sprog" id="s-prog"></div>
   <section class="sband">
     <h3>Jetzt auf den Scheiben</h3>
     <div class="snow" id="s-now"></div>
@@ -597,10 +630,16 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     <h3>Gleich dran — bitte bereithalten</h3>
     <div class="sready" id="s-ready"></div>
   </section>
-  <section class="sband" id="s-laterband">
-    <h3>Danach</h3>
-    <ol class="snext" id="s-next"></ol>
-  </section>
+  <div class="sduo">
+    <section class="sband" id="s-laterband">
+      <h3>Danach</h3>
+      <ol class="snext" id="s-next"></ol>
+    </section>
+    <section class="sband" id="s-feedband">
+      <h3>Zuletzt gespielt</h3>
+      <ol class="sfeed" id="s-feed"></ol>
+    </section>
+  </div>
   <div id="s-main"></div>
 </div>
 
@@ -620,7 +659,7 @@ var DOCS=["meta","roster","team","einzel"];
 
 var DEFR={players:[],teams:[]};
 var DEFC={groups:null,groupSize:4,onlyPresent:false,results:{},ko:null};
-var DEFM={boards:4,mg:10,mk:15,pause:15,qualifiers:2,tiebreak:"legdiff",koDraw:"seeded",assign:{},autoFill:true};
+var DEFM={boards:4,feed:[],notice:"",mg:10,mk:15,pause:15,qualifiers:2,tiebreak:"legdiff",koDraw:"seeded",assign:{},autoFill:true};
 var S={meta:Object.assign({},DEFM), roster:{players:[],teams:[]},
        einzel:Object.assign({},DEFC), team:Object.assign({},DEFC)};
 var active="team";
@@ -1220,9 +1259,40 @@ function setResult(key,d,v){
   if(d.kind==="group"){ if(val) c.results[mk(a,b)]=val; else delete c.results[mk(a,b)]; }
   else if(d.kind==="ko"){ if(val) c.ko.results["r"+d.r+"-"+d.m]=val; else delete c.ko.results["r"+d.r+"-"+d.m]; }
   else c.ko.third=val;
+  pushFeed(d,val);
   pruneAssign();
   if(val && S.meta.autoFill!==false) assignFree(key);
   persist(key); persist("meta"); renderAll();
+}
+
+/* Kurzes Gedächtnis der zuletzt gespielten Partien — Futter für den
+   Ticker auf dem Fernseher. */
+function pushFeed(d,val){
+  var f=S.meta.feed||(S.meta.feed=[]), k=dKey(d);
+  for(var i=f.length-1;i>=0;i--) if(f[i].k===k) f.splice(i,1);
+  if(val){
+    var sd=dSides(d), lo=(sd[0]===val.w)?sd[1]:sd[0];
+    f.unshift({k:k,cls:d.cls,w:val.w,l:lo,ll:val.ll,no:dNo(d),at:Date.now()});
+  }
+  if(f.length>10) f.length=10;
+}
+function overallProgress(){
+  var total=0, done=0;
+  ["team","einzel"].forEach(function(k){
+    var pl=classPlan(k), c=S[k];
+    total += pl.gm + sum(pl.ko);
+    done += Object.keys(c.results||{}).length;
+    if(c.ko) done += Object.keys(c.ko.results||{}).length + (c.ko.third?1:0);
+  });
+  return {done:done, total:total};
+}
+function currentPhase(){
+  if(S.team.groups && !groupsComplete("team")) return "Team · Gruppenphase";
+  if(S.team.ko && !koWinner("team",koRoundCount("team")-1,0)) return "Team · KO-Runde";
+  if(S.einzel.groups && !groupsComplete("einzel")) return "Einzel · Gruppenphase";
+  if(S.einzel.ko && !koWinner("einzel",koRoundCount("einzel")-1,0)) return "Einzel · KO-Runde";
+  if(S.einzel.ko || S.team.ko) return "Siegerehrung";
+  return "Vor dem Turnier";
 }
 
 /* ============ Ablauf ============ */
@@ -1555,6 +1625,7 @@ function renderControls(){
   $("sel-kodraw").value=S.meta.koDraw;
   $("chk-present").checked=!!c.onlyPresent;
   $("chk-autofill").checked=S.meta.autoFill!==false;
+  if(document.activeElement!==$("in-notice")) $("in-notice").value=S.meta.notice||"";
   [["in-boards","boards"],["in-mg","mg"],["in-mk","mk"],["in-pause","pause"]].forEach(function(x){
     if(document.activeElement!==$(x[0])) $(x[0]).value=S.meta[x[1]];
   });
@@ -1622,6 +1693,20 @@ function renderScreen(){
   var titleBit = scr.view==="ko"?"KO-Runde":(scr.view==="both"?"Gesamtstand":"Gruppenphase");
   $("s-title").textContent=clsName(k)+" — "+titleBit;
 
+  $("s-clock").textContent=clock(new Date());
+  var nt=(S.meta.notice||"").trim();
+  $("s-notice").className = nt ? "snotice on" : "snotice";
+  $("s-notice").textContent = nt;
+
+  var pr=overallProgress();
+  var tlv=buildTimeline();
+  $("s-prog").innerHTML = pr.total
+    ? '<div class="pl"><span><b>'+esc(currentPhase())+'</b></span>'
+      +'<span>Spiel <b>'+pr.done+'</b> von <b>'+pr.total+'</b></span>'
+      +'<span>Ende gegen <b>'+clock(tlv.end)+'</b></span></div>'
+      +'<div class="pb"><i style="width:'+Math.min(100,pr.done/pr.total*100)+'%"></i></div>'
+    : "";
+
   var st=syncState(), tail=" · "+(fsState==="on"?"gesichert":st.short), main=$("s-main"), o="";
   if(!av.gruppen&&!av.ko){ $("s-sub").textContent="Noch nicht ausgelost."+tail; main.innerHTML=""; }
   else{
@@ -1667,6 +1752,14 @@ function renderScreen(){
     $("s-readyband").style.display="";
     $("s-ready").innerHTML='<p class="sempty">Alle Partien laufen oder sind gespielt.</p>';
   }
+
+  var feed=(S.meta.feed||[]).slice(0,6);
+  $("s-feedband").style.display = feed.length ? "" : "none";
+  $("s-feed").innerHTML = feed.map(function(f){
+    return '<li><span class="sc">2:'+f.ll+'</span><span><span class="wn">'
+      +esc(nameOf(f.cls,f.w))+'</span> schlägt '+esc(nameOf(f.cls,f.l))
+      +'</span><span class="tm">'+clock(new Date(f.at))+'</span></li>';
+  }).join("");
 }
 function openScreen(){ $("screen").classList.add("on"); lsSet(LS+"screen","1"); renderScreen(); }
 function closeScreen(){
@@ -1823,6 +1916,14 @@ $("btn-koclear").addEventListener("click",function(){
   snapshotUndo("KO-Baum "+clsName(active)+" verworfen");
   S[active].ko=null; pruneAssign(); persist(active); persist("meta"); renderAll();
 });
+$("btn-notice").addEventListener("click",function(){
+  S.meta.notice=$("in-notice").value.trim(); persist("meta"); renderAll();
+  toast(S.meta.notice?"Meldung steht auf dem Bildschirm.":"Meldung entfernt.");
+});
+$("in-notice").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("btn-notice").click(); } });
+$("btn-notice-x").addEventListener("click",function(){
+  S.meta.notice=""; $("in-notice").value=""; persist("meta"); renderAll(); toast("Meldung entfernt.");
+});
 $("btn-fill").addEventListener("click",fillBoards);
 $("btn-freeall").addEventListener("click",function(){
   if(!confirm("Alle Scheiben freigeben?")) return;
@@ -1976,6 +2077,7 @@ function initSync(){
   }
   setInterval(function(){ if(netDirty&&role==="leitung"&&online) pushNet(); },45000);
   setInterval(function(){ if(role) renderChips(); },60000);
+  setInterval(function(){ if($("screen").classList.contains("on")) renderScreen(); },20000);
 }
 Array.prototype.forEach.call(document.querySelectorAll("details.fold"),function(d){
   var k=LS+"fold:"+d.id, v=lsGet(k);
