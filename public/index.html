@@ -90,6 +90,27 @@ body.gated .wrap,body.gated .screen{display:none!important}
 .panel > header h2{margin:0; font-size:21px}
 .panel > header .sub{font-size:13px; color:var(--ink-dim); text-align:right}
 .pbody{padding:14px 15px}
+/* Einklappbare Blöcke: <details> mit eigenem Pfeil statt Systemdreieck. */
+details.fold > summary{display:flex; align-items:baseline; gap:10px; padding:13px 15px;
+  border-bottom:1px solid var(--line-soft); cursor:pointer; list-style:none}
+details.fold > summary::-webkit-details-marker{display:none}
+details.fold > summary h2{margin:0; font-size:21px}
+details.fold > summary .sub{margin-left:auto; text-align:right; font-size:13px; color:var(--ink-dim)}
+details.fold > summary::after{content:""; width:8px; height:8px; flex:none; align-self:center;
+  margin-left:12px; border-right:2px solid var(--ink-faint); border-bottom:2px solid var(--ink-faint);
+  transform:rotate(45deg) translate(-2px,-2px); transition:transform .15s}
+details.fold[open] > summary::after{transform:rotate(-135deg)}
+details.fold:not([open]) > summary{border-bottom:none}
+details.fold > summary:hover{background:var(--surface2)}
+details.fold > summary:hover::after{border-color:var(--brand)}
+.gfold > summary{list-style:none; cursor:pointer; font-size:11.5px; font-weight:600;
+  color:var(--ink-faint); font-family:Barlow,sans-serif; display:flex; align-items:center; gap:6px}
+.gfold > summary::-webkit-details-marker{display:none}
+.gfold > summary::after{content:""; width:6px; height:6px; border-right:1.5px solid currentColor;
+  border-bottom:1.5px solid currentColor; transform:rotate(45deg) translate(-1px,-1px)}
+.gfold[open] > summary::after{transform:rotate(-135deg)}
+.gfold > summary:hover{color:var(--ink)}
+.gfold[open]{padding-bottom:10px}
 .panel.quiet{box-shadow:none; background:transparent; border-color:var(--line-soft)}
 .panel.quiet > header{border-bottom-color:var(--line-soft)}
 .panel.quiet > header h2{color:var(--ink-dim); font-size:18px}
@@ -201,6 +222,16 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   display:flex; justify-content:space-between; align-items:baseline; gap:8px}
 .bd .bdn em{font-style:normal; font-size:11.5px; color:var(--ink-faint); font-family:Barlow,sans-serif; font-weight:400}
 .bd .bdm{font-size:14px; margin:5px 0 3px; overflow-wrap:anywhere}
+/* Ergebnis in der Zeile des Siegers anklicken — kein Nachdenken darüber,
+   welcher Name links steht. */
+.bd .side{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:6px;
+  align-items:center; padding:6px 0}
+.bd .side + .side{border-top:1px solid var(--line-soft)}
+.bd .side .nm{overflow-wrap:anywhere; font-size:14.5px; font-weight:500}
+.wb{border:1px solid var(--line); background:transparent; border-radius:2px; padding:5px 9px;
+  cursor:pointer; font-family:"Barlow Condensed",sans-serif; font-weight:600; font-size:13.5px;
+  color:var(--ink-dim); font-variant-numeric:tabular-nums; line-height:1.1}
+.wb:hover{border-color:var(--brand); background:var(--brand); color:#fff}
 .bd .bdw{font-size:11.5px; color:var(--ink-dim); margin-bottom:6px}
 .bd .field{gap:6px}
 .bd select{font-size:13px; padding:5px 26px 5px 9px}
@@ -302,6 +333,13 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   color:#8FA79B; letter-spacing:.03em}
 .snow .row .m{font-size:clamp(17px,2vw,27px); font-weight:600; line-height:1.15;
   overflow-wrap:anywhere; margin-top:2px}
+.sready{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px}
+.sready .row{border:1px dashed var(--brand); border-radius:3px; padding:9px 14px 11px;
+  background:rgba(127,184,154,.06); display:flex; gap:12px; align-items:baseline}
+.sready .row .n{font-family:"Barlow Condensed",sans-serif; font-weight:700; color:var(--brand);
+  font-size:clamp(19px,2.1vw,28px); line-height:1; flex:none; font-variant-numeric:tabular-nums}
+.sready .row .m{font-size:clamp(16px,1.85vw,24px); font-weight:600; line-height:1.15; overflow-wrap:anywhere}
+.sready .row .w{display:block; font-size:.62em; font-weight:400; color:#8FA79B; margin-top:3px}
 .snext{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:7px 26px}
 .snext li{display:flex; gap:9px; font-size:clamp(13.5px,1.35vw,17px); color:#B9C6CC}
 .snext li span{min-width:0; overflow-wrap:anywhere}
@@ -371,8 +409,8 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     </div>
   </header>
 
-  <section class="panel" style="margin-top:0" aria-labelledby="h-sp">
-    <header><h2 id="h-sp">Spieler</h2><span class="sub" id="sp-sub"></span></header>
+  <details class="panel fold" id="f-sp" style="margin-top:0" open>
+    <summary><h2>Spieler</h2><span class="sub" id="sp-sub"></span></summary>
     <div class="pbody">
       <div class="split">
         <div>
@@ -413,7 +451,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <div class="sums" id="sums"></div>
       <p class="hint" id="sp-note"></p>
     </div>
-  </section>
+  </details>
 
   <div class="classbar" role="tablist" aria-label="Wettbewerb">
     <span class="lbl">Wettbewerb</span>
@@ -479,9 +517,9 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     </div>
   </section>
 
-  <section class="panel quiet" aria-labelledby="h-calc">
-    <header><h2 id="h-calc">Ablauf des Abends</h2>
-      <span class="sub">Team komplett, danach Einzel — auf denselben Scheiben</span></header>
+  <details class="panel quiet fold" id="f-calc">
+    <summary><h2>Ablauf des Abends</h2>
+      <span class="sub">Team komplett, danach Einzel</span></summary>
     <div class="pbody">
       <div class="ctrls">
         <div class="ctrl"><label for="in-boards">Dartscheiben</label><input type="text" id="in-boards" inputmode="numeric" class="num"></div>
@@ -492,10 +530,10 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <div class="tl" id="tl"></div>
       <div id="verdict"></div>
     </div>
-  </section>
+  </details>
 
-  <section class="panel quiet" aria-labelledby="h-sync">
-    <header><h2 id="h-sync">Sicherung</h2><span class="sub" id="sync-sub"></span></header>
+  <details class="panel quiet fold" id="f-sync">
+    <summary><h2>Sicherung</h2><span class="sub" id="sync-sub"></span></summary>
     <div class="pbody">
       <div class="syncgrid" id="syncgrid"></div>
 
@@ -523,7 +561,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       </div>
       <p class="hint" id="sync-note"></p>
     </div>
-  </section>
+  </details>
 
   <p class="foot" id="foot"></p>
 </div>
@@ -555,8 +593,12 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     <h3>Jetzt auf den Scheiben</h3>
     <div class="snow" id="s-now"></div>
   </section>
-  <section class="sband">
-    <h3>Als Nächstes</h3>
+  <section class="sband" id="s-readyband">
+    <h3>Gleich dran — bitte bereithalten</h3>
+    <div class="sready" id="s-ready"></div>
+  </section>
+  <section class="sband" id="s-laterband">
+    <h3>Danach</h3>
     <ol class="snext" id="s-next"></ol>
   </section>
   <div id="s-main"></div>
@@ -578,7 +620,7 @@ var DOCS=["meta","roster","team","einzel"];
 
 var DEFR={players:[],teams:[]};
 var DEFC={groups:null,groupSize:4,onlyPresent:false,results:{},ko:null};
-var DEFM={boards:6,mg:10,mk:15,pause:15,qualifiers:2,tiebreak:"legdiff",koDraw:"seeded",assign:{},autoFill:true};
+var DEFM={boards:4,mg:10,mk:15,pause:15,qualifiers:2,tiebreak:"legdiff",koDraw:"seeded",assign:{},autoFill:true};
 var S={meta:Object.assign({},DEFM), roster:{players:[],teams:[]},
        einzel:Object.assign({},DEFC), team:Object.assign({},DEFC)};
 var active="team";
@@ -1363,13 +1405,13 @@ function renderGroups(){
     });
     o+='</div>';
     if(c.groups.length>1){
-      o+='<div class="gsec"><h4>Verschieben</h4>';
+      o+='<details class="gsec gfold"><summary>Gruppe wechseln</summary>';
       g.forEach(function(id){
         var opts="";
         for(var t=0;t<c.groups.length;t++) opts+='<option value="'+t+'"'+(t===gi?" selected":"")+'>'+letter(t)+'</option>';
         o+='<div class="mtch"><span class="who">'+esc(nameOf(key,id))+'</span><select class="mv" data-id="'+id+'" aria-label="Gruppe wechseln">'+opts+'</select></div>';
       });
-      o+='</div>';
+      o+='</details>';
     }
     o+='</div>';
   });
@@ -1456,11 +1498,14 @@ function renderBoardsPanel(){
     var k=String(n), d=a[k];
     o+='<div class="bd'+(d?" busy":"")+'"><div class="bdn">Scheibe '+n+(d?'<em>'+esc(dMode(d))+'</em>':'')+'</div>';
     if(d){
-      var s=dSides(d);
-      o+='<div class="bdm"><span class="mno">'+esc(dNo(d))+'</span>'+esc(nameOf(d.cls,s[0]))+' – '+esc(nameOf(d.cls,s[1]))+'</div>'
-       +'<div class="bdw">'+esc(dWhere(d))+'</div>'
-       +'<div class="field">'+resultSelect("bres",'data-d="'+dKey(d)+'"',"")
-       +'<button class="btn ghost sm" data-free="'+n+'">Freigeben</button></div>';
+      var sd=dSides(d), dk=dKey(d);
+      o+='<div class="bdw"><span class="mno">'+esc(dNo(d))+'</span>'+esc(dWhere(d))+'</div>';
+      for(var i=0;i<2;i++){
+        o+='<div class="side"><span class="nm">'+esc(nameOf(d.cls,sd[i]))+'</span>'
+          +'<button class="wb" data-w="'+dk+'|'+i+'|0" title="gewinnt 2:0">2:0</button>'
+          +'<button class="wb" data-w="'+dk+'|'+i+'|1" title="gewinnt 2:1">2:1</button></div>';
+      }
+      o+='<div class="field" style="margin-top:9px"><button class="btn ghost sm" data-free="'+n+'">Freigeben</button></div>';
     } else {
       o+='<div class="free">frei</div><select class="bassign" data-n="'+n+'"><option value="">Partie wählen …</option>';
       queue.forEach(function(q2){
@@ -1494,7 +1539,8 @@ function renderCalc(){
     S.meta.boards=keep;
     v.className="verdict bad";
     v.innerHTML="Nacheinander wärt ihr erst gegen <b>"+clock(t.end)+"</b> durch — das reißt Mitternacht. "
-      +"Mit <b>"+need+" Scheiben</b> ginge es aus. Sonst: größere Gruppen, oder nur der Gruppensieger kommt weiter.";
+      +"Mit <b>"+need+" Scheiben</b> ginge es aus. Ohne mehr Scheiben hilft <b>nur der Gruppensieger kommt weiter</b> am meisten, "
+      +"danach <b>kleinere Gruppen</b> — eine Gruppe mit einem Teilnehmer mehr kostet überproportional viele Spiele.";
   } else {
     v.className="verdict good";
     v.innerHTML="Ende gegen <b>"+clock(t.end)+"</b>. Das ist reine Spielzeit — Auslosung, Grillpause und Trödeln kommen obendrauf, real eher 30 bis 60 Minuten mehr."
@@ -1596,12 +1642,31 @@ function renderScreen(){
   }
   $("s-now").innerHTML=rows||'<p class="sempty">Keine Partie zugeteilt.</p>';
 
+  /* Die ersten so vielen Partien, wie es Scheiben gibt, rücken als Nächstes
+     nach — die werden hervorgehoben, der Rest steht klein darunter. */
   var taken=assignedKeys();
-  var next=openMatches(k).filter(function(d){ return !taken[dKey(d)]; }).slice(0,8);
-  $("s-next").innerHTML = next.length ? next.map(function(d){
+  var queue=openMatches(k).filter(function(d){ return !taken[dKey(d)]; });
+  var ready=queue.slice(0,S.meta.boards), later=queue.slice(S.meta.boards,S.meta.boards+8);
+
+  $("s-readyband").style.display = ready.length ? "" : "none";
+  $("s-ready").innerHTML = ready.map(function(d,i){
     var s2=dSides(d);
-    return '<li><span>'+esc(nameOf(d.cls,s2[0]))+' – '+esc(nameOf(d.cls,s2[1]))+'<em>'+esc(dNo(d))+' · '+esc(dWhere(d))+'</em></span></li>';
-  }).join("") : '<p class="sempty">Alle Partien laufen oder sind gespielt.</p>';
+    return '<div class="row"><span class="n">'+(i+1)+'</span><span class="m">'
+      +esc(nameOf(d.cls,s2[0]))+' – '+esc(nameOf(d.cls,s2[1]))
+      +'<span class="w">'+esc(dNo(d))+' · '+esc(dWhere(d))+' · '+esc(dMode(d))+'</span></span></div>';
+  }).join("");
+
+  $("s-laterband").style.display = later.length ? "" : "none";
+  $("s-next").innerHTML = later.map(function(d,i){
+    var s2=dSides(d);
+    return '<li><span>'+(S.meta.boards+i+1)+' · '+esc(nameOf(d.cls,s2[0]))+' – '+esc(nameOf(d.cls,s2[1]))
+      +'<em>'+esc(dNo(d))+' · '+esc(dWhere(d))+'</em></span></li>';
+  }).join("");
+
+  if(!queue.length){
+    $("s-readyband").style.display="";
+    $("s-ready").innerHTML='<p class="sempty">Alle Partien laufen oder sind gespielt.</p>';
+  }
 }
 function openScreen(){ $("screen").classList.add("on"); lsSet(LS+"screen","1"); renderScreen(); }
 function closeScreen(){
@@ -1741,7 +1806,7 @@ function numInput(el,key,min,max,def){
     el.value=S.meta[key]; pruneAssign(); persist("meta"); renderAll();
   });
 }
-numInput($("in-boards"),"boards",1,24,6);
+numInput($("in-boards"),"boards",1,24,4);
 numInput($("in-mg"),"mg",3,40,10);
 numInput($("in-mk"),"mk",3,60,15);
 numInput($("in-pause"),"pause",0,60,15);
@@ -1769,15 +1834,16 @@ $("bd-wrap").addEventListener("change",function(e){
     if(!t.value) return;
     assignMap()[t.dataset.n]=dParse(t.value); persist("meta"); renderAll(); return;
   }
-  if(t.classList.contains("bres")){
-    var d=dParse(t.dataset.d);
-    if(d.kind==="group") d.gi=groupOf(d.cls,d.a);
-    setResult(d.cls,d,t.value);
-  }
 });
 $("bd-wrap").addEventListener("click",function(e){
-  var b=e.target.closest("button[data-free]"); if(!b) return;
-  delete assignMap()[b.dataset.free]; persist("meta"); renderAll();
+  var b=e.target.closest("button[data-free]");
+  if(b){ delete assignMap()[b.dataset.free]; persist("meta"); renderAll(); return; }
+  var w=e.target.closest("button[data-w]"); if(!w) return;
+  var parts=w.dataset.w.split("|");
+  var ll=parseInt(parts.pop(),10), side=parseInt(parts.pop(),10);
+  var d=dParse(parts.join("|"));
+  if(d.kind==="group") d.gi=groupOf(d.cls,d.a);
+  setResult(d.cls, d, side===0 ? ("2:"+ll) : (ll+":2"));
 });
 $("groups-wrap").addEventListener("change",function(e){
   var t=e.target;
@@ -1911,6 +1977,12 @@ function initSync(){
   setInterval(function(){ if(netDirty&&role==="leitung"&&online) pushNet(); },45000);
   setInterval(function(){ if(role) renderChips(); },60000);
 }
+Array.prototype.forEach.call(document.querySelectorAll("details.fold"),function(d){
+  var k=LS+"fold:"+d.id, v=lsGet(k);
+  if(v!==null) d.open=(v==="1");
+  d.addEventListener("toggle",function(){ lsSet(k, d.open?"1":"0"); });
+});
+
 if("serviceWorker" in navigator)
   window.addEventListener("load",function(){ navigator.serviceWorker.register("./sw.js").catch(function(){}); });
 
