@@ -837,6 +837,7 @@ function loadLocal(){
   });
   try{ dirty=JSON.parse(lsGet(LS+"dirty")||"{}")||{}; }catch(e){ dirty={}; }
   migrateOld();
+  if(role==="leitung") cleanupGhosts();
 }
 /* Daten aus der Fassung mit getrennten Teilnehmerlisten übernehmen. */
 function migrateOld(){
@@ -1046,7 +1047,8 @@ function removePlayer(id){
   if(t) dropTeam(t.id,true);
   S.roster.players=players().filter(function(p){ return p.id!==id; });
   purgeFrom("einzel",id);
-  pruneAssign(); persist("roster"); persist("einzel"); persist("meta"); renderAll();
+  pruneAssign();
+  persist("roster"); persist("einzel"); persist("team"); persist("meta"); renderAll();
 }
 function dropTeam(id,silent){
   if(!silent && !confirm("Team auflösen? Die beiden Spieler bleiben in der Liste.")) return;
@@ -1059,6 +1061,41 @@ function purgeFrom(key,id){
   if(c.groups) c.groups=c.groups.map(function(g){ return g.filter(function(x){ return x!==id; }); });
   Object.keys(c.results).forEach(function(k){ if(k.indexOf(id)>-1) delete c.results[k]; });
   if(c.ko && c.ko.slots.indexOf(id)>-1) c.ko=null;
+}
+
+/* Teilnehmer, die es nicht mehr gibt, aus Gruppen, Ergebnissen und Baum
+   entfernen. Räumt auch Datenstände auf, die vor der Korrektur entstanden
+   sind — sonst tauchen leere Partien „— – —" auf. */
+function knownId(key,id){ return key==="einzel" ? !!playerById(id) : !!teamById(id); }
+function cleanupGhosts(){
+  var changed=[];
+  ["team","einzel"].forEach(function(key){
+    var c=S[key], touched=false;
+    if(c.groups){
+      var ng=c.groups.map(function(g){ return g.filter(function(id){ return knownId(key,id); }); });
+      if(JSON.stringify(ng)!==JSON.stringify(c.groups)){ c.groups=ng; touched=true; }
+      if(!c.groups.some(function(g){ return g.length; })){ c.groups=null; touched=true; }
+    }
+    Object.keys(c.results||{}).forEach(function(k){
+      var ids=k.split("~");
+      if(!knownId(key,ids[0])||!knownId(key,ids[1])){ delete c.results[k]; touched=true; }
+    });
+    if(c.ko && c.ko.slots.some(function(id){ return id && !knownId(key,id); })){ c.ko=null; touched=true; }
+    if(touched) changed.push(key);
+  });
+  var a=assignMap(), am=false;
+  Object.keys(a).forEach(function(n){
+    var d=a[n], sd=dSides(d);
+    if(!sd[0]||!sd[1]||!knownId(d.cls,sd[0])||!knownId(d.cls,sd[1])){ delete a[n]; am=true; }
+  });
+  var f=S.meta.feed||[], nf=f.filter(function(x){ return knownId(x.cls,x.w)&&knownId(x.cls,x.l); });
+  if(nf.length!==f.length){ S.meta.feed=nf; am=true; }
+  if(changed.length||am){
+    changed.forEach(function(k){ persist(k); });
+    persist("meta");
+    return true;
+  }
+  return false;
 }
 
 /* ============ Gruppen ============ */
@@ -1414,6 +1451,22 @@ function classPlan(key){
   return {entries:e,groups:sizes.length,gm:gm,ko:koRoundSizes(q),q:q};
 }
 function waves(m){ return Math.ceil(m/Math.max(1,S.meta.boards)); }
+/* Voraussichtliches Ende: solange nichts läuft aus dem Ablaufplan,
+   sobald gespielt wird aus der tatsächlich verbleibenden Spielzahl. */
+function endEstimate(){
+  var pr=overallProgress(), now=new Date();
+  if(!pr.done && now<STARTTIME) return buildTimeline().end;
+  var gm=0, km=0;
+  ["team","einzel"].forEach(function(k){
+    var c=S[k], pl=classPlan(k);
+    gm += Math.max(0, pl.gm - Object.keys(c.results||{}).length);
+    var kd = c.ko ? (Object.keys(c.ko.results||{}).length + (c.ko.third?1:0)) : 0;
+    km += Math.max(0, sum(pl.ko) - kd);
+  });
+  var mins = waves(gm)*S.meta.mg + waves(km)*S.meta.mk;
+  var base = now>STARTTIME ? now.getTime() : STARTTIME.getTime();
+  return new Date(base + mins*60000);
+}
 function buildTimeline(){
   var pt=classPlan("team"), pe=classPlan("einzel");
   function koMin(p){ var t=0; p.ko.forEach(function(m){ t+=waves(m)*S.meta.mk; }); return t; }
@@ -1980,9 +2033,20 @@ function screenNow(){
   var o='<section>'+(rows?'<div class="snow">'+rows+'</div>'
         :'<p class="sempty">Keine Partie zugeteilt.</p>')+'</section>';
 
+  /* Nur die Klasse, die gerade gespielt wird — Team und Einzel laufen
+     nacheinander, also gehört nur eine davon in die Warteschlange. */
+  var a2=assignMap(), onBoards={};
+  Object.keys(a2).forEach(function(n){ onBoards[a2[n].cls]=1; });
+  var classes=Object.keys(onBoards);
+  if(!classes.length) classes=["team","einzel"].filter(function(k){ return openMatches(k).length; }).slice(0,1);
   var taken=assignedKeys(), queue=[];
-  ["team","einzel"].forEach(function(k){
-    openMatches(k).forEach(function(d){ if(!taken[dKey(d)]) queue.push(d); });
+  classes.forEach(function(k){
+    openMatches(k).forEach(function(d){
+      if(taken[dKey(d)]) return;
+      var sd=dSides(d);
+      if(!sd[0]||!sd[1]||!knownId(k,sd[0])||!knownId(k,sd[1])) return;
+      queue.push(d);
+    });
   });
   var ready=queue.slice(0,S.meta.boards);
   if(ready.length){
@@ -2020,7 +2084,7 @@ function renderScreen(){
   $("s-prog").innerHTML = pr.total
     ? '<div class="pl"><span><b>'+esc(currentPhase())+'</b></span>'
       +'<span>Spiel <b>'+pr.done+'</b> von <b>'+pr.total+'</b></span>'
-      +'<span>Ende gegen <b>'+clock(buildTimeline().end)+'</b></span></div>'
+      +'<span>Ende gegen <b>'+clock(endEstimate())+'</b></span></div>'
       +'<div class="pb"><i style="width:'+Math.min(100,pr.done/pr.total*100)+'%"></i></div>'
     : "";
 
