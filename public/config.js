@@ -16,7 +16,7 @@
 //              service_role-Key.
 // ---------------------------------------------------------------------
 window.HHDT_CONFIG = {
-  backupKey: "",
+  backupKey: "7*dqgfBrTG8rdbJHnwm2",
   supabaseUrl: "",
   supabaseKey: ""
 };
