@@ -2683,18 +2683,17 @@ $("btn-paste-e").addEventListener("click",function(){
   persist("roster"); renderAll(); toast(n+" Einzelstarter übernommen.");
 });
 $("btn-paste-t").addEventListener("click",function(){
-  var n=0;
+  var n=0, skipped=0;
   pasteLines().forEach(function(ln){
     var parts=ln.split(/\s*(?:\/|&|;|\+|\bund\b)\s*/i);
-    if(parts.length<2) return;
-    if(teams().length>=MAX) return;
+    if(parts.length<2||teams().length>=MAX){ skipped++; return; }
     var a=ensurePlayer(parts[0]), b=ensurePlayer(parts[1]);
-    if(!a||!b||a.id===b.id) return;
-    if(teamOfPlayer(a.id)||teamOfPlayer(b.id)) return;
+    if(!a||!b||a.id===b.id||teamOfPlayer(a.id)||teamOfPlayer(b.id)){ skipped++; return; }
     teams().push({id:uid(),name:"",a:a.id,b:b.id}); n++;
   });
   $("ta-paste").value=""; $("paste-box").style.display="none";
-  persist("roster"); renderAll(); toast(n+" Teams gebildet.");
+  persist("roster"); renderAll();
+  toast(n+" Teams gebildet."+(skipped?" "+skipped+" Zeile"+(skipped===1?"":"n")+" übersprungen (ungültig oder schon in einem Team).":""));
 });
 
 $("sel-size").addEventListener("change",function(){ S[active].groupSize=parseInt(this.value,10); persist(active); renderAll(); });
