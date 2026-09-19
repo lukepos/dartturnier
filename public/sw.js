@@ -3,7 +3,7 @@
    der Seite, hier wird nur die App selbst zwischengespeichert.
    Bei Änderungen an index.html die VERSION hochzählen.            */
 
-var VERSION = "hhdt-v20";
+var VERSION = "hhdt-v21";
 var CORE = [
   "./",
   "./index.html",
@@ -63,6 +63,21 @@ self.addEventListener("fetch", function (e) {
             status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" }
           });
         });
+      })
+    );
+    return;
+  }
+
+  // config.js wird am Turnierabend selbst noch geändert (Schlüssel, Supabase) —
+  // deshalb wie eine Seitenaufruf immer zuerst übers Netz, sonst der alte Stand.
+  if (url.indexOf("/config.js") > -1) {
+    e.respondWith(
+      fetch(req).then(function (res) {
+        var copy = res.clone();
+        caches.open(VERSION).then(function (c) { c.put(req, copy); });
+        return res;
+      }).catch(function () {
+        return caches.match(req);
       })
     );
     return;
