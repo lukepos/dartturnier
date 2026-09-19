@@ -1164,12 +1164,11 @@ function renderCapture(){
 /* ============ Vom Handy (Postfach in der Leitungs-Oberfläche) ============ */
 function publishBoard(){
   if(!netKey()||role!=="leitung") return;
-  var items=[];
-  ["team","einzel"].forEach(function(key){
-    openMatches(key).forEach(function(d){
-      var s=dSides(d); if(!s[0]||!s[1]) return;
-      items.push({k:dKey(d), no:dNo(d), a:nameOf(d.cls,s[0]), b:nameOf(d.cls,s[1]), where:dWhere(d), mode:dMode(d)});
-    });
+  var a=assignMap(), items=[];
+  Object.keys(a).sort().forEach(function(n){
+    var d=a[n]; if(!d) return;
+    var s=dSides(d); if(!s[0]||!s[1]) return;
+    items.push({k:dKey(d), no:dNo(d), a:nameOf(d.cls,s[0]), b:nameOf(d.cls,s[1]), where:"Scheibe "+n+" · "+dWhere(d), mode:dMode(d)});
   });
   fetch(capUrl("&what=board"),{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({at:Date.now(),items:items})}).catch(function(){});
