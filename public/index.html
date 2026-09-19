@@ -478,6 +478,19 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .rfoot{max-width:900px; margin:0 auto; padding:18px 26px 0; border-top:1px solid var(--line-soft);
   color:var(--ink-faint); font-size:12.5px}
 .rempty{color:var(--ink-dim); padding:14px 0}
+.pmode{font-size:12.5px; color:var(--ink-dim); margin:6px 0 0}
+.pmem{list-style:none; margin:0 0 8px; padding:0 0 8px; border-bottom:1px solid var(--line-soft);
+  counter-reset:pm}
+.pmem li{counter-increment:pm; font-size:13.5px; padding:2px 0; display:flex; gap:7px; overflow-wrap:anywhere}
+.pmem li::before{content:counter(pm) "."; color:var(--ink-faint); flex:none; width:14px}
+.pm{display:grid; grid-template-columns:34px minmax(0,1fr) 54px; gap:7px; align-items:baseline;
+  font-size:13px; padding:3.5px 0; border-top:1px solid var(--line-soft)}
+.pm .no{font-family:"Barlow Condensed",sans-serif; font-weight:700; color:var(--ink-faint);
+  font-variant-numeric:tabular-nums}
+.pm .who{overflow-wrap:anywhere}
+.pm .sc{text-align:right; font-variant-numeric:tabular-nums; color:var(--ink-faint);
+  border-bottom:1px solid var(--line); min-height:1.2em}
+.pm .sc.done{color:var(--ink); font-weight:600; border-bottom-color:transparent}
 
 @media print{
   @page{ size:A4; margin:14mm 13mm; }
@@ -492,8 +505,19 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   .rhead{border-bottom:2pt solid #000}
   .pod.p1{background:#f2f2f2}
   .pod.p1 b,.rtab tr.top td.pl,.rhead .mark{color:#000 !important}
-  .rclass h3,.rhead .org,.rtab th{color:#444 !important}
+  .rclass h3,.rhead .org,.rtab th,.pmode{color:#444 !important}
+  .pm .sc{border-bottom:1px solid #999}
+  .pm .sc.done{color:#000 !important; border-bottom-color:transparent}
 }
+/* Fehlerband: bleibt stehen, bis es weggeklickt wird — ein Hinweis, der
+   nach drei Sekunden verschwindet, hilft im Turnierbetrieb niemandem. */
+.errbar{display:none; position:sticky; top:0; z-index:40; gap:12px; align-items:center;
+  flex-wrap:wrap; background:var(--red); color:#fff; padding:10px 15px; margin:0 -16px 14px;
+  font-size:14.5px}
+.errbar.on{display:flex}
+.errbar span{flex:1 1 240px; min-width:0}
+.errbar .btn{border-color:rgba(255,255,255,.55); color:#fff; background:transparent}
+.errbar .btn:hover{background:rgba(255,255,255,.15)}
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:22px; z-index:90;
   background:var(--ink); color:var(--bg); padding:9px 16px; border-radius:3px; font-size:14.5px;
   box-shadow:0 4px 14px rgba(0,0,0,.25); max-width:90vw}
@@ -526,6 +550,11 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 </div>
 
 <div class="wrap">
+  <div class="errbar" id="errbar" role="alert">
+    <span id="err-text"></span>
+    <button class="btn ghost sm" id="err-save">Sicherung herunterladen</button>
+    <button class="btn ghost sm" id="err-hide">Ausblenden</button>
+  </div>
   <header class="mast">
     <span class="mark" aria-hidden="true"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="50" cy="50" r="47"/><circle cx="50" cy="50" r="35"/><circle cx="50" cy="50" r="16"/><path stroke-width="3.5" d="M83.8 59.1L95.4 62.2M74.7 74.7L83.2 83.2M59.1 83.8L62.2 95.4M40.9 83.8L37.8 95.4M25.3 74.7L16.8 83.2M16.2 59.1L4.6 62.2M16.2 40.9L4.6 37.8M25.3 25.3L16.8 16.8M40.9 16.2L37.8 4.6M59.1 16.2L62.2 4.6M74.7 25.3L83.2 16.8M83.8 40.9L95.4 37.8"/></g><circle cx="50" cy="50" r="6.5" fill="currentColor"/></svg></span>
     <div>
@@ -593,6 +622,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <span class="meter"><i id="mtr-einzel" style="width:0%"></i></span>
     </button>
     <button class="btn ghost" id="btn-screen">Anzeige starten</button>
+    <button class="btn ghost" id="btn-plan">Spielplan</button>
     <button class="btn ghost" id="btn-results">Ergebnisse</button>
     <button class="btn ghost" id="btn-focus" aria-pressed="false" title="Blendet alles aus, was während des Turniers nicht gebraucht wird">Fokus</button>
   </div>
@@ -704,6 +734,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 
 <div class="results" id="results" role="region" aria-label="Ergebnisse">
   <div class="rtools">
+    <button class="btn ghost" id="r-mode" title="Zwischen Spielplan und Ergebnissen wechseln">Ergebnisse</button>
     <button class="btn" id="r-print">Als PDF drucken</button>
     <button class="btn ghost" id="r-copy">Als Text kopieren</button>
     <button class="btn ghost" id="r-close">Schließen</button>
@@ -788,6 +819,34 @@ function ssGet(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null
 function ssDel(k){ try{ sessionStorage.removeItem(k); }catch(e){} }
 function norm(s){ return String(s||"").trim().replace(/\s+/g," ").toLowerCase(); }
 
+/* Ein Fehler darf die Oberfläche nicht stumm anhalten. Er wird gemeldet,
+   mitgeschrieben und wandert in die Sicherung. */
+var errAt=0;
+function reportError(msg){
+  try{
+    var log=[]; try{ log=JSON.parse(lsGet(LS+"errors")||"[]")||[]; }catch(e){}
+    log.unshift({at:new Date().toISOString(), msg:String(msg).slice(0,400)});
+    lsSet(LS+"errors", JSON.stringify(log.slice(0,25)));
+  }catch(e){}
+  if(Date.now()-errAt<8000) return;
+  errAt=Date.now();
+  try{
+    var bar=document.getElementById("errbar");
+    if(bar){
+      document.getElementById("err-text").textContent =
+        "Es ist ein Fehler aufgetreten. Der Turnierstand ist gespeichert — sichere ihn zur Sicherheit einmal in eine Datei.";
+      bar.className="errbar on";
+    }
+  }catch(e){}
+}
+function errorLog(){ try{ return JSON.parse(lsGet(LS+"errors")||"[]")||[]; }catch(e){ return []; } }
+window.addEventListener("error",function(e){
+  reportError((e.message||"Fehler")+" @"+(e.filename||"")+":"+(e.lineno||"?"));
+});
+window.addEventListener("unhandledrejection",function(e){
+  var r=e.reason; reportError("Promise: "+((r&&r.message)||r));
+});
+
 var toastT;
 function toast(msg){
   var el=document.querySelector(".toast"); if(el) el.remove();
@@ -807,7 +866,7 @@ function applyRole(){
   $("gate").classList.toggle("on", !role);
   document.body.classList.toggle("viewonly", role==="anzeige");
   if(role==="anzeige"){
-    if((location.hash||"").toLowerCase().indexOf("ergebnis")>-1) openResults();
+    if((location.hash||"").toLowerCase().indexOf("ergebnis")>-1) openResults("ergebnis");
     else $("screen").classList.add("on");
   }
 }
@@ -920,7 +979,7 @@ function pull(){
 /* ============ Automatische Sicherung ============ */
 function backupPayload(){
   return JSON.stringify({v:2,at:new Date().toISOString(),
-    meta:S.meta,roster:S.roster,team:S.team,einzel:S.einzel});
+    meta:S.meta,roster:S.roster,team:S.team,einzel:S.einzel,errors:errorLog()});
 }
 function idbGet(k,cb){
   try{
@@ -1298,7 +1357,7 @@ function openMatches(key){
         if(p[0]&&p[1]&&!c.ko.results["r"+r+"-"+m]) out.push({cls:key,kind:"ko",r:r,m:m});
       }
     }
-    if(R>=2){
+    if(thirdExists(key)){
       var a=koLoser(key,R-2,0), b=koLoser(key,R-2,1);
       if(a&&b&&!c.ko.third) out.push({cls:key,kind:"third"});
     }
@@ -1452,6 +1511,11 @@ function groupCounts(key){
   c.groups.forEach(function(g){ t+=pairsOf(g).length; d+=playedIn(key,g); });
   return {total:t, done:d};
 }
+function thirdExists(key){
+  var R=koRoundCount(key);
+  if(R<2) return false;
+  return !koBye(key,R-2,0) && !koBye(key,R-2,1);
+}
 function koCounts(key){
   var c=S[key];
   if(!c.groups) return {total:0, done:0};
@@ -1465,7 +1529,7 @@ function koCounts(key){
       if(c.ko.results["r"+r+"-"+m]) d++;
     }
   }
-  if(R>=2){ t++; if(c.ko.third) d++; }
+  if(thirdExists(key)){ t++; if(c.ko.third) d++; }
   return {total:t, done:d};
 }
 function overallProgress(){
@@ -1498,7 +1562,7 @@ function koRoundSizes(q){
   var rounds=[], rem, first=q-b/2;
   if(first>0){ rounds.push(first); rem=b/2; } else rem=q;
   while(rem>1){ rounds.push(rem/2); rem=rem/2; }
-  if(q>=4&&rounds.length) rounds[rounds.length-1]+=1;
+  if(q>=4&&rounds.length) rounds[rounds.length-1]+=1;   // Spiel um Platz 3
   return rounds;
 }
 function classPlan(key){
@@ -1744,7 +1808,7 @@ function koHtml(key,editable){
     o+='</div></div>';
   }
   o+='</div>';
-  if(R>=2){
+  if(thirdExists(key)){
     var a3=koLoser(key,R-2,0), b3=koLoser(key,R-2,1), res3=ko.third, ready3=!!(a3&&b3);
     o+='<div class="third"><h4>Spiel um Platz 3<span>'+roundMode(4)+'</span></h4><div class="kom">';
     [a3,b3].forEach(function(id){
@@ -1784,7 +1848,7 @@ function renderKo(){
     for(var m=0;m<n;m++){ var p=koPair(key,r,m);
       if(p[0]&&p[1]){ total++; if(ko.results["r"+r+"-"+m]) played++; } }
   }
-  if(R>=2){ var a=koLoser(key,R-2,0),b=koLoser(key,R-2,1); if(a&&b){ total++; if(ko.third) played++; } }
+  if(thirdExists(key)){ total++; if(ko.third) played++; }
   $("ko-sub").innerHTML=roundName(ko.slots.length)+" bis Finale<br>"+played+" von "+total+" spielbereit";
 }
 function renderBoardsPanel(){
@@ -1872,6 +1936,8 @@ function renderSync(){
   rows+='<div class="s1"><span>Datei</span><b class="'+(fsState==="on"?"ok":(fsState==="ask"?"bad":""))+'">'+fsTxt+(fsAt?" · "+clock(new Date(fsAt)):"")+'</b></div>';
   rows+='<div class="s1"><span>Serversicherung</span><b class="'+(netErr?"bad":(netAt?"ok":""))+'">'+(netKey()?(netErr||(netAt?clock(new Date(netAt)):"wartet")):"aus")+'</b></div>';
   rows+='<div class="s1"><span>Seit Sicherung</span><b class="'+(backupDue()?"bad":"")+'">'+sinceBackup()+'</b></div>';
+  var el=errorLog();
+  if(el.length) rows+='<div class="s1"><span>Fehler protokolliert</span><b class="bad">'+el.length+'</b></div>';
   if($("syncgrid")) $("syncgrid").innerHTML=rows;
   if($("sync-sub")) $("sync-sub").textContent = sb?"Supabase aktiv":"ohne Supabase";
   if($("sync-note")) $("sync-note").textContent = st.long;
@@ -2057,7 +2123,7 @@ function resultsHtml(){
         }
         if(rows) o+='<div><h4>'+roundName(ent)+'<em>'+roundMode(ent)+'</em></h4>'+rows+'</div>';
       }
-      if(R>=2){
+      if(thirdExists(key)){
         var a3=koLoser(key,R-2,0), b3=koLoser(key,R-2,1), r3=c.ko.third;
         if(a3&&b3){
           var wa=r3&&r3.w===a3;
@@ -2087,8 +2153,68 @@ function resultsText(){
   });
   return t+"\nStand: "+new Date().toLocaleString("de-DE")+"\n";
 }
-function renderResults(){ $("r-body").innerHTML=resultsHtml(); }
-function openResults(){ $("results").classList.add("on"); renderResults(); }
+function planHtml(){
+  var o='<div class="rpage"><div class="rhead"><span class="mark">'+MARK_SVG+'</span><div>'
+    +'<p class="org">St.-Antonius-Schützenbruderschaft Hartefeld · seit 1453</p>'
+    +'<h1>4. Hartefelder Hobby-Dartturnier</h1>'
+    +'<p class="sub">Spielplan · Samstag, 17. Oktober 2026 · Schießstand „Zur Dorfschmiede“, Hartefeld</p>'
+    +'</div></div>';
+  var any=false;
+  ["team","einzel"].forEach(function(key){
+    var c=S[key];
+    if(!c.groups||!c.groups.length) return;
+    any=true;
+    var gc=groupCounts(key);
+    o+='<section class="rclass"><h2>'+(key==="team"?"Team · Doppel":"Einzel")
+      +'<em>'+c.groups.length+' Gruppen · '+gc.total+' Partien</em></h2>'
+      +'<p class="pmode">Gruppenphase 301 ohne Double-In/Out · Achtel- und Viertelfinale 301 Double-Out · '
+      +'ab Halbfinale 501 Double-Out · immer Best-of-Three</p><div class="rgrid">';
+    c.groups.forEach(function(g,gi){
+      o+='<div class="rg"><h4>Gruppe '+letter(gi)+'</h4><ol class="pmem">';
+      g.forEach(function(id){ o+='<li>'+esc(nameOf(key,id))+'</li>'; });
+      o+='</ol>';
+      pairsOf(g).forEach(function(pr){
+        var r=c.results[mk(pr[0],pr[1])];
+        var sc = r ? (r.w===pr[0] ? "2:"+r.ll : r.ll+":2") : "";
+        o+='<div class="pm"><span class="no">'+esc(dNo({cls:key,kind:"group",a:pr[0],b:pr[1]}))+'</span>'
+         +'<span class="who">'+esc(nameOf(key,pr[0]))+' – '+esc(nameOf(key,pr[1]))+'</span>'
+         +'<span class="sc'+(r?" done":"")+'">'+sc+'</span></div>';
+      });
+      o+='</div>';
+    });
+    o+='</div></section>';
+  });
+  if(!any) o+='<p class="rempty">Noch keine Gruppen ausgelost.</p>';
+  o+='</div>';
+  o+='<p class="rfoot">Gedruckt am '+new Date().toLocaleDateString("de-DE")+', '+clock(new Date())
+    +' · Ergebnisse bitte an die Turnierleitung melden: Scheibennummer und Sieger</p>';
+  return o;
+}
+function planText(){
+  var t="4. HARTEFELDER HOBBY-DARTTURNIER — SPIELPLAN\n";
+  ["team","einzel"].forEach(function(key){
+    var c=S[key]; if(!c.groups||!c.groups.length) return;
+    t+="\n"+(key==="team"?"TEAM · DOPPEL":"EINZEL")+"\n";
+    c.groups.forEach(function(g,gi){
+      t+="\nGruppe "+letter(gi)+": "+g.map(function(id){ return nameOf(key,id); }).join(", ")+"\n";
+      pairsOf(g).forEach(function(pr){
+        var r=c.results[mk(pr[0],pr[1])];
+        t+="  "+dNo({cls:key,kind:"group",a:pr[0],b:pr[1]})+"  "+nameOf(key,pr[0])+" – "+nameOf(key,pr[1])
+         +(r?("   "+(r.w===pr[0]?"2:"+r.ll:r.ll+":2")):"")+"\n";
+      });
+    });
+  });
+  return t;
+}
+var docMode="ergebnis";
+function renderResults(){
+  $("r-body").innerHTML = docMode==="plan" ? planHtml() : resultsHtml();
+  $("r-mode").textContent = docMode==="plan" ? "Zu den Ergebnissen" : "Zum Spielplan";
+}
+function openResults(mode){
+  docMode = mode==="plan" ? "plan" : "ergebnis";
+  $("results").classList.add("on"); renderResults();
+}
 function closeResults(){ $("results").classList.remove("on"); }
 
 /* ============ Anzeige ============ */
@@ -2239,10 +2365,12 @@ function setAuto(on){
 }
 function renderAll(){
   if(!role) return;
+  try{
   renderChips(); renderTabs(); renderRoster(); renderControls(); renderGroups();
   renderBoardsPanel(); renderKo(); renderCalc(); renderSync();
   if($("screen").classList.contains("on")) renderScreen();
   if($("results").classList.contains("on")) renderResults();
+  }catch(e){ reportError("Anzeige: "+(e&&e.message)); }
 }
 
 /* ============ Ereignisse ============ */
@@ -2472,6 +2600,10 @@ function downloadBackup(tag){
   clearSince(); renderSync();
 }
 $("btn-backup").addEventListener("click",function(){ downloadBackup(""); toast("Sicherung gespeichert."); });
+$("err-save").addEventListener("click",function(){
+  downloadBackup("fehler"); $("errbar").className="errbar"; toast("Sicherung gespeichert.");
+});
+$("err-hide").addEventListener("click",function(){ $("errbar").className="errbar"; });
 $("in-restore").addEventListener("change",function(e){
   var f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
   var r=new FileReader();
@@ -2509,12 +2641,16 @@ function setFocus(on){
 $("btn-focus").addEventListener("click",function(){
   setFocus(!document.body.classList.contains("focus"));
 });
-$("btn-results").addEventListener("click",openResults);
-$("s-results").addEventListener("click",openResults);
+$("btn-results").addEventListener("click",function(){ openResults("ergebnis"); });
+$("btn-plan").addEventListener("click",function(){ openResults("plan"); });
+$("s-results").addEventListener("click",function(){ openResults("ergebnis"); });
+$("r-mode").addEventListener("click",function(){
+  docMode = docMode==="plan" ? "ergebnis" : "plan"; renderResults();
+});
 $("r-close").addEventListener("click",closeResults);
 $("r-print").addEventListener("click",function(){ renderResults(); setTimeout(function(){ window.print(); },60); });
 $("r-copy").addEventListener("click",function(){
-  var txt=resultsText();
+  var txt = docMode==="plan" ? planText() : resultsText();
   if(navigator.clipboard&&navigator.clipboard.writeText)
     navigator.clipboard.writeText(txt).then(function(){ toast("Ergebnisse kopiert."); },function(){ toast("Kopieren nicht möglich."); });
   else toast("Kopieren nicht möglich.");
