@@ -1412,6 +1412,7 @@ function drawGroups(){
   var ids=shuffle(pool), k=groupCount(ids.length,c.groupSize), sizes=splitSizes(ids.length,k), out=[], i=0;
   for(var g=0;g<k;g++){ out.push(ids.slice(i,i+sizes[g])); i+=sizes[g]; }
   c.groups=out; c.results={}; c.ko=null;
+  forgetMilestone(key+"-gruppen"); forgetMilestone(key+"-ko");
   pruneAssign(); persist(key); persist("meta"); renderAll(); toast(k+" Gruppen ausgelost.");
 }
 function moveTo(id,target){
@@ -1507,6 +1508,7 @@ function buildKo(){
   var slots=order.map(function(s){ return s<=bySeed.length ? bySeed[s-1] : null; });
   if(S.meta.koDraw!=="random") slots=unclashSlots(key,slots);
   c.ko={slots:slots,results:{},third:null};
+  forgetMilestone(key+"-ko");
   pruneAssign(); persist(key); persist("meta"); renderAll();
   toast(roundName(B)+" gesetzt · "+q.length+" Teilnehmer.");
 }
@@ -2197,6 +2199,15 @@ function reachedMilestones(){
   if(S.einzel.ko&&classDone("einzel")) m.push("einzel-ko");
   return m;
 }
+/* Wird eine Gruppenauslosung oder ein KO-Baum verworfen/neu gesetzt, ist der
+   Abschnitt nicht mehr "erledigt" — sonst würde ein zweiter Durchlauf (z.B.
+   Testlauf, dann zurückgesetzt) beim erneuten Abschluss stillschweigend
+   keine neue Sicherung mehr herunterladen. */
+function forgetMilestone(tag){
+  var seen=[]; try{ seen=JSON.parse(lsGet(LS+"ms")||"[]")||[]; }catch(e){}
+  var i=seen.indexOf(tag);
+  if(i>-1){ seen.splice(i,1); lsSet(LS+"ms",JSON.stringify(seen)); }
+}
 function checkMilestones(){
   if(role!=="leitung"||S.meta.autoDownload===false) return;
   var seen=[]; try{ seen=JSON.parse(lsGet(LS+"ms")||"[]")||[]; }catch(e){}
@@ -2719,13 +2730,15 @@ $("btn-draw").addEventListener("click",drawGroups);
 $("btn-reset").addEventListener("click",function(){
   if(!confirm("Alle Gruppen-Ergebnisse dieser Klasse löschen? Die Gruppen bleiben bestehen.")) return;
   snapshotUndo("Ergebnisse "+clsName(active)+" gelöscht");
-  S[active].results={}; pruneAssign(); persist(active); persist("meta"); renderAll();
+  S[active].results={}; forgetMilestone(active+"-gruppen");
+  pruneAssign(); persist(active); persist("meta"); renderAll();
 });
 $("btn-buildko").addEventListener("click",buildKo);
 $("btn-koclear").addEventListener("click",function(){
   if(!confirm("KO-Baum dieser Klasse verwerfen?")) return;
   snapshotUndo("KO-Baum "+clsName(active)+" verworfen");
-  S[active].ko=null; pruneAssign(); persist(active); persist("meta"); renderAll();
+  S[active].ko=null; forgetMilestone(active+"-ko");
+  pruneAssign(); persist(active); persist("meta"); renderAll();
 });
 $("btn-notice").addEventListener("click",function(){
   S.meta.notice=$("in-notice").value.trim(); persist("meta"); renderAll();
