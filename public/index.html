@@ -689,8 +689,8 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     </div>
   </section>
 
-  <section class="panel" aria-labelledby="h-inbox">
-    <header><h2 id="h-inbox">Vom Handy</h2><span class="sub" id="inbox-sub"></span></header>
+  <details class="panel fold" id="f-inbox" open>
+    <summary><h2>Vom Handy</h2><span class="sub" id="inbox-sub"></span></summary>
     <div class="pbody">
       <div class="field" style="margin-bottom:10px">
         <input type="text" id="cap-url" readonly style="flex:1 1 320px">
@@ -699,7 +699,7 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <p class="hint">Öffne diesen Link auf deinem eigenen Handy, um Ergebnisse unterwegs zu melden.</p>
       <div id="inbox-wrap"></div>
     </div>
-  </section>
+  </details>
 
   <section class="panel" aria-labelledby="h-ko">
     <header><h2 id="h-ko">KO&#8209;Runde</h2><span class="sub" id="ko-sub"></span></header>
@@ -839,7 +839,7 @@ var scr={cls:"team", view:"jetzt", auto:false};
 var autoT=null;
 
 var sb=null, role="", pin="", device="";
-var capItems=[], capSel=null, capQueue=[], capReported={}, capAt=0, capErr="", boardT=null, inboxItems=[];
+var capItems=[], capSel=null, capQueue=[], capReported={}, capAt=0, capErr="", capFlushing=false, boardT=null, inboxItems=[];
 var revs={meta:0,roster:0,team:0,einzel:0}, dirty={};
 var online=navigator.onLine, syncErr="", lastSync=0;
 var fsHandle=null, fsPending=null, fsState="off", fsAt=0, fsErr="", fsT=null;
@@ -1126,14 +1126,24 @@ function loadCapBoard(){
   },function(){ capErr="offline"; renderCapture(); });
 }
 function capFlush(){
-  if(!netKey()||!capQueue.length) return;
-  capQueue.slice().forEach(function(rep){
+  /* Nacheinander, nicht parallel: das Postfach ist ein einzelner Blob ohne
+     Sperre — zwei gleichzeitige Schreibvorgänge könnten sich gegenseitig
+     überschreiben und eine Meldung stillschweigend verschlucken. */
+  if(!netKey()||!capQueue.length||capFlushing) return;
+  capFlushing=true;
+  var sendNext=function(){
+    if(!capQueue.length){ capFlushing=false; return; }
+    var rep=capQueue[0];
     fetch(capUrl("&what=report"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rep)})
       .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
       .then(function(x){
-        if(x.ok){ capQueue=capQueue.filter(function(q){ return q.id!==rep.id; }); saveCapQueue(); renderCapture(); }
-      },function(){ /* bleibt in der Warteschlange, nächster Versuch später */ });
-  });
+        if(x.ok){
+          capQueue=capQueue.filter(function(q){ return q.id!==rep.id; }); saveCapQueue(); renderCapture();
+          sendNext();
+        } else capFlushing=false;
+      },function(){ capFlushing=false; /* bleibt in der Warteschlange, nächster Versuch später */ });
+  };
+  sendNext();
 }
 function capSelect(k){ capSel=k; renderCapture(); }
 function capSubmit(item,v){
