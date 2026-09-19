@@ -228,6 +228,8 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   display:flex; justify-content:space-between; align-items:baseline; gap:8px}
 .bd .bdn em{font-style:normal; font-size:11.5px; color:var(--ink-faint); font-family:Barlow,sans-serif; font-weight:400}
 .bd .bdm{font-size:14px; margin:5px 0 3px; overflow-wrap:anywhere}
+.caprep{background:var(--surface); border:1px solid var(--brand); border-radius:3px;
+  padding:8px 10px; margin:8px 0; font-size:13.5px}
 /* Ergebnis in der Zeile des Siegers anklicken — kein Nachdenken darüber,
    welcher Name links steht. */
 .bd .side{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:6px;
@@ -315,6 +317,11 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
 .caprow{display:block; width:100%; text-align:left; padding:14px 16px; margin-bottom:8px;
   border:1px solid var(--line); border-radius:6px; background:var(--surface); font-size:15px; cursor:pointer}
 .caprow b{display:block; font-size:13px; color:var(--ink-dim); font-weight:600; margin-bottom:2px}
+.caprow.done{opacity:.6}
+.caprow .capv{float:right; font-weight:700; color:var(--green)}
+.caphead{font-family:"Barlow Condensed",sans-serif; font-size:15px; font-weight:600;
+  color:var(--ink-dim); margin:14px 2px 6px; text-transform:uppercase; letter-spacing:.03em}
+.caphead:first-child{margin-top:2px}
 #cap-entry{border-top:1px solid var(--line); background:var(--surface); padding:14px; flex:none}
 #cap-entry .wb{font-size:18px; padding:14px; min-width:0}
 #cap-entry .wbrow{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px}
@@ -832,7 +839,7 @@ var scr={cls:"team", view:"jetzt", auto:false};
 var autoT=null;
 
 var sb=null, role="", pin="", device="";
-var capItems=[], capSel=null, capQueue=[], capAt=0, capErr="", boardT=null, inboxItems=[];
+var capItems=[], capSel=null, capQueue=[], capReported={}, capAt=0, capErr="", boardT=null, inboxItems=[];
 var revs={meta:0,roster:0,team:0,einzel:0}, dirty={};
 var online=navigator.onLine, syncErr="", lastSync=0;
 var fsHandle=null, fsPending=null, fsState="off", fsAt=0, fsErr="", fsT=null;
@@ -1101,11 +1108,21 @@ function capUrl(q){ return "/api/capture?k="+encodeURIComponent(netKey())+(q||""
 
 function loadCapQueue(){ try{ capQueue=JSON.parse(lsGet(LS+"capQueue")||"[]")||[]; }catch(e){ capQueue=[]; } }
 function saveCapQueue(){ lsSet(LS+"capQueue",JSON.stringify(capQueue)); }
+function loadCapReported(){ try{ capReported=JSON.parse(lsGet(LS+"capReported")||"{}")||{}; }catch(e){ capReported={}; } }
+function saveCapReported(){ lsSet(LS+"capReported",JSON.stringify(capReported)); }
 
 function loadCapBoard(){
   if(!netKey()) return;
   fetch(capUrl("&what=board")).then(function(r){ return r.json(); }).then(function(j){
-    capItems=(j&&j.items)||[]; capAt=Date.now(); capErr=""; renderCapture();
+    capItems=(j&&j.items)||[]; capAt=Date.now(); capErr="";
+    /* Partien, die nicht mehr auf einer Scheibe stehen, wurden von der
+       Leitung entweder übernommen oder die Scheibe wurde neu belegt —
+       in beiden Fällen ist die eigene "gemeldet"-Markierung hinfällig. */
+    var live={}; capItems.forEach(function(it){ live[it.k]=1; });
+    var touched=false;
+    Object.keys(capReported).forEach(function(k){ if(!live[k]){ delete capReported[k]; touched=true; } });
+    if(touched) saveCapReported();
+    renderCapture();
   },function(){ capErr="offline"; renderCapture(); });
 }
 function capFlush(){
@@ -1122,7 +1139,7 @@ function capSelect(k){ capSel=k; renderCapture(); }
 function capSubmit(item,v){
   var rep={id:uid(), dk:item.k, no:item.no, a:item.a, b:item.b, v:v, at:Date.now(), device:device};
   capQueue.push(rep); saveCapQueue();
-  capItems=capItems.filter(function(it){ return it.k!==item.k; });
+  capReported[item.k]={no:item.no, a:item.a, b:item.b, v:v}; saveCapReported();
   capSel=null; renderCapture();
   toast("Ergebnis gemeldet — wartet auf Bestätigung.");
   capFlush();
@@ -1143,9 +1160,11 @@ function renderCapture(){
 
   var sel=capSel?capItems.filter(function(it){ return it.k===capSel; })[0]:null;
   if(sel){
+    var already=capReported[sel.k];
     $("cap-list").innerHTML='<button class="btn ghost" id="cap-back">← Zurück zur Liste</button>';
     $("cap-entry").innerHTML=
       '<div class="caprow"><b>'+esc(sel.where||"")+'</b>'+esc(sel.no)+'  '+esc(sel.a)+' – '+esc(sel.b)+'</div>'
+      +(already?'<p class="hint">Schon gemeldet: '+esc(already.v)+' — erneut absenden ersetzt das.</p>':'')
       +'<div class="wbrow"><button class="wb" data-cw="'+esc(sel.k)+'|0|0">'+esc(sel.a)+' 2:0</button>'
       +'<button class="wb" data-cw="'+esc(sel.k)+'|0|1">'+esc(sel.a)+' 2:1</button></div>'
       +'<div class="wbrow"><button class="wb" data-cw="'+esc(sel.k)+'|1|1">'+esc(sel.b)+' 2:1</button>'
@@ -1154,10 +1173,19 @@ function renderCapture(){
   }
   $("cap-entry").innerHTML="";
   if(!capItems.length){ $("cap-list").innerHTML='<p class="empty">Gerade keine offene Partie.</p>'; return; }
-  var o="";
-  capItems.forEach(function(it){
-    o+='<button class="caprow" data-capsel="'+esc(it.k)+'"><b>'+esc(it.where||"")+'</b>'+esc(it.no)+'  '+esc(it.a)+' – '+esc(it.b)+'</button>';
-  });
+  var open=capItems.filter(function(it){ return !capReported[it.k]; });
+  var done=capItems.filter(function(it){ return capReported[it.k]; });
+  var o='<h3 class="caphead">Offen</h3>';
+  o+=open.length?open.map(function(it){
+    return '<button class="caprow" data-capsel="'+esc(it.k)+'"><b>'+esc(it.where||"")+'</b>'+esc(it.no)+'  '+esc(it.a)+' – '+esc(it.b)+'</button>';
+  }).join(""):'<p class="empty">Keine.</p>';
+  if(done.length){
+    o+='<h3 class="caphead">Gemeldet</h3>';
+    o+=done.map(function(it){
+      return '<button class="caprow done" data-capsel="'+esc(it.k)+'"><b>'+esc(it.where||"")+'</b>'+esc(it.no)+'  '+esc(it.a)+' – '+esc(it.b)
+        +'<span class="capv">'+esc(capReported[it.k].v)+'</span></button>';
+    }).join("");
+  }
   $("cap-list").innerHTML=o;
 }
 
@@ -1180,12 +1208,19 @@ function scheduleBoard(){
 function loadInbox(){
   if(!netKey()||role!=="leitung") return;
   fetch(capUrl("&what=reports")).then(function(r){ return r.json(); }).then(function(j){
-    inboxItems=(j&&j.items)||[]; renderInbox();
+    inboxItems=(j&&j.items)||[]; renderInbox(); renderBoardsPanel();
   },function(){});
 }
 function clearInboxItem(id){
-  inboxItems=inboxItems.filter(function(x){ return x.id!==id; }); renderInbox();
+  inboxItems=inboxItems.filter(function(x){ return x.id!==id; }); renderInbox(); renderBoardsPanel();
   fetch(capUrl("&what=clear&id="+encodeURIComponent(id)),{method:"POST"}).catch(function(){});
+}
+function applyInboxItem(id){
+  var item=inboxItems.filter(function(x){ return x.id===id; })[0]; if(!item) return;
+  var d=dParse(item.dk); if(d.kind==="group") d.gi=groupOf(d.cls,d.a);
+  var s=dSides(d);
+  if(s[0]&&s[1]&&!dDone(d)) setResult(d.cls,d,item.v);
+  clearInboxItem(id);
 }
 function renderInbox(){
   var wrap=$("inbox-wrap"); if(!wrap) return;
@@ -2027,7 +2062,14 @@ function renderBoardsPanel(){
     o+='<div class="bd'+(d?" busy":"")+'"><div class="bdn">Scheibe '+n+(d?'<em>'+esc(dMode(d))+'</em>':'')+'</div>';
     if(d){
       var sd=dSides(d), dk=dKey(d);
+      var rep=inboxItems.filter(function(x){ return x.dk===dk; })[0];
       o+='<div class="bdw"><span class="mno">'+esc(dNo(d))+'</span>'+esc(dWhere(d))+'</div>';
+      if(rep){
+        o+='<div class="caprep">Vom Handy gemeldet: <b>'+esc(rep.v)+'</b>'
+          +'<div class="field" style="margin-top:6px">'
+          +'<button class="btn sm" data-inbox="apply" data-id="'+esc(rep.id)+'">Übernehmen</button>'
+          +'<button class="btn ghost sm" data-inbox="discard" data-id="'+esc(rep.id)+'">Verwerfen</button></div></div>';
+      }
       for(var i=0;i<2;i++){
         o+='<div class="side"><span class="nm">'+esc(nameOf(d.cls,sd[i]))+'</span>'
           +'<button class="wb" data-w="'+dk+'|'+i+'|0" title="gewinnt 2:0">2:0</button>'
@@ -2696,8 +2738,10 @@ $("bd-wrap").addEventListener("change",function(e){
   }
 });
 $("bd-wrap").addEventListener("click",function(e){
-  var b=e.target.closest("button[data-free]");
-  if(b){ delete assignMap()[b.dataset.free]; persist("meta"); renderAll(); return; }
+  var f=e.target.closest("button[data-free]");
+  if(f){ delete assignMap()[f.dataset.free]; persist("meta"); renderAll(); return; }
+  var rb=e.target.closest("button[data-inbox]");
+  if(rb){ if(rb.dataset.inbox==="apply") applyInboxItem(rb.dataset.id); else clearInboxItem(rb.dataset.id); return; }
   var w=e.target.closest("button[data-w]"); if(!w) return;
   var parts=w.dataset.w.split("|");
   var ll=parseInt(parts.pop(),10), side=parseInt(parts.pop(),10);
@@ -2729,14 +2773,7 @@ $("cap-entry").addEventListener("click",function(e){
 });
 $("inbox-wrap").addEventListener("click",function(e){
   var b=e.target.closest("button[data-inbox]"); if(!b) return;
-  var id=b.dataset.id, item=inboxItems.filter(function(x){ return x.id===id; })[0];
-  if(!item) return;
-  if(b.dataset.inbox==="apply"){
-    var d=dParse(item.dk); if(d.kind==="group") d.gi=groupOf(d.cls,d.a);
-    var s=dSides(d);
-    if(s[0]&&s[1]&&!dDone(d)) setResult(d.cls,d,item.v);
-  }
-  clearInboxItem(id);
+  if(b.dataset.inbox==="apply") applyInboxItem(b.dataset.id); else clearInboxItem(b.dataset.id);
 });
 $("btn-cap-copy").addEventListener("click",function(){
   var u=$("cap-url")?$("cap-url").value:"";
@@ -2919,7 +2956,7 @@ function initSync(){
 
   /* Rollen-Check jeweils im Intervall selbst (nicht nur beim Start), damit
      ein Rollenwechsel per #hash zur Laufzeit (ohne Neuladen) sofort greift. */
-  loadCapQueue();
+  loadCapQueue(); loadCapReported();
   setInterval(function(){ if(role==="erfassen"){ loadCapBoard(); capFlush(); } },8000);
   document.addEventListener("visibilitychange",function(){
     if(document.visibilityState==="visible"&&role==="erfassen"){ loadCapBoard(); capFlush(); }
