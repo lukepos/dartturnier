@@ -76,6 +76,11 @@ body.gated .wrap,body.gated .screen{display:none!important}
 
 .classbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:22px 0 0}
 .classbar .lbl{font-size:13px; color:var(--ink-dim); align-self:center; margin-right:2px}
+/* Eigene Zeile für "Anzeige starten" & Co — sonst wirken sie wie eine dritte
+   Wettbewerb-Kachel, obwohl sie etwas ganz anderes tun (Anzeige öffnen,
+   Ansicht wechseln, Dichte umschalten). Trennstriche gruppieren nach Zweck. */
+.toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0 0}
+.toolsep{width:1px; align-self:stretch; min-height:22px; background:var(--line); margin:0 2px}
 .ctab{flex:1 1 200px; min-width:0; text-align:left; cursor:pointer; background:var(--surface);
   border:1px solid var(--line); border-left:4px solid var(--line); border-radius:3px;
   padding:11px 14px; box-shadow:var(--shadow)}
@@ -232,14 +237,17 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   padding:8px 10px; margin:8px 0; font-size:13.5px}
 /* Ergebnis in der Zeile des Siegers anklicken — kein Nachdenken darüber,
    welcher Name links steht. */
-.bd .side{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:6px;
-  align-items:center; padding:6px 0}
+.bd .side{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px;
+  align-items:center; padding:8px 0}
 .bd .side + .side{border-top:1px solid var(--line-soft)}
-.bd .side .nm{overflow-wrap:anywhere; font-size:14.5px; font-weight:500}
-.wb{border:1px solid var(--line); background:transparent; border-radius:2px; padding:5px 9px;
-  cursor:pointer; font-family:"Barlow Condensed",sans-serif; font-weight:600; font-size:13.5px;
-  color:var(--ink-dim); font-variant-numeric:tabular-nums; line-height:1.1}
-.wb:hover{border-color:var(--brand); background:var(--brand); color:#fff}
+.bd .side .nm{overflow-wrap:anywhere; font-size:15.5px; font-weight:500}
+/* Die Sieger-Knöpfe sind die eine Aktion, die am Abend ständig gebraucht
+   wird — bewusst deutlich kräftiger als alle anderen Knöpfe auf der Karte. */
+.wb{border:1.5px solid var(--brand); background:var(--surface); border-radius:5px; padding:9px 15px;
+  cursor:pointer; font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:16px;
+  color:var(--brand); font-variant-numeric:tabular-nums; line-height:1.1}
+.wb:hover{background:var(--brand); color:#fff}
+.wb:active{background:var(--brand); color:#fff; opacity:.85}
 .bd .bdw{font-size:11.5px; color:var(--ink-dim); margin-bottom:6px}
 .bd .field{gap:6px}
 .bd select{font-size:13px; padding:5px 26px 5px 9px}
@@ -644,9 +652,14 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
       <span class="ccount" id="cnt-einzel">0 von 32</span>
       <span class="meter"><i id="mtr-einzel" style="width:0%"></i></span>
     </button>
+  </div>
+
+  <div class="toolbar">
     <button class="btn ghost" id="btn-screen">Anzeige starten</button>
+    <span class="toolsep"></span>
     <button class="btn ghost" id="btn-plan">Spielplan</button>
     <button class="btn ghost" id="btn-results">Ergebnisse</button>
+    <span class="toolsep"></span>
     <button class="btn ghost" id="btn-focus" aria-pressed="false" title="Blendet alles aus, was während des Turniers nicht gebraucht wird">Fokus</button>
   </div>
 
@@ -1868,7 +1881,9 @@ function renderChips(){
   var d1=days(DEADLINE), d2=days(STARTTIME), o="";
   o += d1>0 ? '<span class="chip">Anmeldeschluss in <b class="num">'+d1+'</b> Tagen</span>'
             : '<span class="chip warn"><b>Anmeldeschluss vorbei</b></span>';
-  if(d2>0) o+='<span class="chip">Turnier in <b class="num">'+d2+'</b> Tagen</span>';
+  if(S.meta.startedAt) o+='<span class="chip ok"><b>Läuft seit '+clock(new Date(S.meta.startedAt))+'</b></span>';
+  else if(d2>0) o+='<span class="chip">Turnier in <b class="num">'+d2+'</b> Tagen</span>';
+  else o+='<span class="chip warn"><b>Turnier heute</b></span>';
   var st=syncState();
   o+='<span class="chip '+st.cls+'"><b>'+esc(st.short)+'</b></span>';
   if(fsState==="on") o+='<span class="chip ok"><b>Autosicherung</b></span>';
