@@ -303,6 +303,22 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   display:none; flex-direction:column; --brand:var(--brand-dark)}
 .screen.on{display:flex}
 
+/* Persönliche Handy-Erfassung — helles Theme wie der Rest der App, kein TV-Look. */
+.capture{position:fixed; inset:0; z-index:60; background:var(--bg);
+  display:none; flex-direction:column}
+.capture.on{display:flex}
+.capbar{display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 18px; border-bottom:1px solid var(--line); background:var(--surface); flex:none}
+.capbar h2{font-family:"Barlow Condensed",sans-serif; font-size:22px; margin:0}
+.capstatus{font-size:13px; color:var(--ink-dim)}
+#cap-list{overflow:auto; padding:12px 14px; flex:1 1 auto}
+.caprow{display:block; width:100%; text-align:left; padding:14px 16px; margin-bottom:8px;
+  border:1px solid var(--line); border-radius:6px; background:var(--surface); font-size:15px; cursor:pointer}
+.caprow b{display:block; font-size:13px; color:var(--ink-dim); font-weight:600; margin-bottom:2px}
+#cap-entry{border-top:1px solid var(--line); background:var(--surface); padding:14px; flex:none}
+#cap-entry .wb{font-size:18px; padding:14px; min-width:0}
+#cap-entry .wbrow{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px}
+
 /* Kopfleiste: schmal, immer sichtbar, ein Blick genügt. */
 .stopbar{display:grid; grid-template-columns:auto minmax(0,1fr) minmax(0,1.6fr) auto auto;
   gap:20px; align-items:center; padding:12px 26px; border-bottom:2px solid var(--brand);
@@ -666,6 +682,18 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
     </div>
   </section>
 
+  <section class="panel" aria-labelledby="h-inbox">
+    <header><h2 id="h-inbox">Vom Handy</h2><span class="sub" id="inbox-sub"></span></header>
+    <div class="pbody">
+      <div class="field" style="margin-bottom:10px">
+        <input type="text" id="cap-url" readonly style="flex:1 1 320px">
+        <button class="btn ghost" id="btn-cap-copy">Kopieren</button>
+      </div>
+      <p class="hint">Öffne diesen Link auf deinem eigenen Handy, um Ergebnisse unterwegs zu melden.</p>
+      <div id="inbox-wrap"></div>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="h-ko">
     <header><h2 id="h-ko">KO&#8209;Runde</h2><span class="sub" id="ko-sub"></span></header>
     <div class="pbody">
@@ -771,6 +799,15 @@ textarea{resize:vertical; min-height:84px; line-height:1.4}
   <div class="sticker" id="s-ticker"></div>
 </div>
 
+<div class="capture" id="capture" role="region" aria-label="Handy-Erfassung">
+  <div class="capbar">
+    <h2>Ergebnis erfassen</h2>
+    <span class="capstatus" id="cap-status"></span>
+  </div>
+  <div id="cap-list"></div>
+  <div id="cap-entry"></div>
+</div>
+
 <script src="./config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -795,6 +832,7 @@ var scr={cls:"team", view:"jetzt", auto:false};
 var autoT=null;
 
 var sb=null, role="", pin="", device="";
+var capItems=[], capSel=null, capQueue=[], capAt=0, capErr="", boardT=null, inboxItems=[];
 var revs={meta:0,roster:0,team:0,einzel:0}, dirty={};
 var online=navigator.onLine, syncErr="", lastSync=0;
 var fsHandle=null, fsPending=null, fsState="off", fsAt=0, fsErr="", fsT=null;
@@ -858,16 +896,23 @@ function toast(msg){
 /* ============ Rollen ============ */
 function resolveRole(){
   var h=(location.hash||"").toLowerCase();
+  if(h.indexOf("erfassen")>-1) return "erfassen";
   if(h.indexOf("anzeige")>-1||h.indexOf("ergebnis")>-1) return "anzeige";
   return ssGet(LS+"role")||lsGet(LS+"role")||"";
 }
 function applyRole(){
   document.body.classList.toggle("gated", !role);
   $("gate").classList.toggle("on", !role);
-  document.body.classList.toggle("viewonly", role==="anzeige");
+  document.body.classList.toggle("viewonly", role==="anzeige"||role==="erfassen");
   if(role==="anzeige"){
     if((location.hash||"").toLowerCase().indexOf("ergebnis")>-1) openResults("ergebnis");
     else $("screen").classList.add("on");
+  } else if(role==="erfassen"){
+    $("capture").classList.add("on");
+    loadCapBoard(); capFlush();
+    renderCapture();
+  } else if(role==="leitung"){
+    loadInbox(); publishBoard();
   }
 }
 function chooseRole(r,p){
@@ -934,7 +979,10 @@ function writeLocal(id,markDirty){
 }
 function persist(id){
   writeLocal(id, role==="leitung");
-  if(role==="leitung"){ bumpSince(); netDirty=true; scheduleFs(); }
+  if(role==="leitung"){
+    bumpSince(); netDirty=true; scheduleFs();
+    if(id==="team"||id==="einzel"||id==="meta") scheduleBoard();
+  }
   flush(); renderSync();
 }
 function pendingCount(){ return Object.keys(dirty).length; }
@@ -1047,6 +1095,126 @@ function pushNet(cb){
      else netErr=(x.j&&x.j.error)||"Fehler";
      renderSync(); if(cb) cb(x.ok,netErr);
    },function(){ netErr="offline"; renderSync(); if(cb) cb(false,"offline"); });
+}
+/* ============ Handy-Erfassung (persönliches Zweitgerät) ============ */
+function capUrl(q){ return "/api/capture?k="+encodeURIComponent(netKey())+(q||""); }
+
+function loadCapQueue(){ try{ capQueue=JSON.parse(lsGet(LS+"capQueue")||"[]")||[]; }catch(e){ capQueue=[]; } }
+function saveCapQueue(){ lsSet(LS+"capQueue",JSON.stringify(capQueue)); }
+
+function loadCapBoard(){
+  if(!netKey()) return;
+  fetch(capUrl("&what=board")).then(function(r){ return r.json(); }).then(function(j){
+    capItems=(j&&j.items)||[]; capAt=Date.now(); capErr=""; renderCapture();
+  },function(){ capErr="offline"; renderCapture(); });
+}
+function capFlush(){
+  if(!netKey()||!capQueue.length) return;
+  capQueue.slice().forEach(function(rep){
+    fetch(capUrl("&what=report"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rep)})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+      .then(function(x){
+        if(x.ok){ capQueue=capQueue.filter(function(q){ return q.id!==rep.id; }); saveCapQueue(); renderCapture(); }
+      },function(){ /* bleibt in der Warteschlange, nächster Versuch später */ });
+  });
+}
+function capSelect(k){ capSel=k; renderCapture(); }
+function capSubmit(item,v){
+  var rep={id:uid(), dk:item.k, no:item.no, a:item.a, b:item.b, v:v, at:Date.now(), device:device};
+  capQueue.push(rep); saveCapQueue();
+  capItems=capItems.filter(function(it){ return it.k!==item.k; });
+  capSel=null; renderCapture();
+  toast("Ergebnis gemeldet — wartet auf Bestätigung.");
+  capFlush();
+}
+function renderCapture(){
+  var status=$("cap-status"); if(!status) return;
+  if(!netKey()){
+    status.textContent="kein Schlüssel";
+    $("cap-list").innerHTML='<p class="empty">In config.js einen backupKey eintragen, dann funktioniert die Erfassung.</p>';
+    $("cap-entry").innerHTML="";
+    return;
+  }
+  var bits=[];
+  if(capErr) bits.push(capErr);
+  else if(capAt) bits.push("Stand "+clock(new Date(capAt)));
+  if(capQueue.length) bits.push(capQueue.length+" wird gesendet");
+  status.textContent=bits.join(" · ")||"—";
+
+  var sel=capSel?capItems.filter(function(it){ return it.k===capSel; })[0]:null;
+  if(sel){
+    $("cap-list").innerHTML='<button class="btn ghost" id="cap-back">← Zurück zur Liste</button>';
+    $("cap-entry").innerHTML=
+      '<div class="caprow"><b>'+esc(sel.where||"")+'</b>'+esc(sel.no)+'  '+esc(sel.a)+' – '+esc(sel.b)+'</div>'
+      +'<div class="wbrow"><button class="wb" data-cw="'+esc(sel.k)+'|0|0">'+esc(sel.a)+' 2:0</button>'
+      +'<button class="wb" data-cw="'+esc(sel.k)+'|0|1">'+esc(sel.a)+' 2:1</button></div>'
+      +'<div class="wbrow"><button class="wb" data-cw="'+esc(sel.k)+'|1|1">'+esc(sel.b)+' 2:1</button>'
+      +'<button class="wb" data-cw="'+esc(sel.k)+'|1|0">'+esc(sel.b)+' 2:0</button></div>';
+    return;
+  }
+  $("cap-entry").innerHTML="";
+  if(!capItems.length){ $("cap-list").innerHTML='<p class="empty">Gerade keine offene Partie.</p>'; return; }
+  var o="";
+  capItems.forEach(function(it){
+    o+='<button class="caprow" data-capsel="'+esc(it.k)+'"><b>'+esc(it.where||"")+'</b>'+esc(it.no)+'  '+esc(it.a)+' – '+esc(it.b)+'</button>';
+  });
+  $("cap-list").innerHTML=o;
+}
+
+/* ============ Vom Handy (Postfach in der Leitungs-Oberfläche) ============ */
+function publishBoard(){
+  if(!netKey()||role!=="leitung") return;
+  var items=[];
+  ["team","einzel"].forEach(function(key){
+    openMatches(key).forEach(function(d){
+      var s=dSides(d); if(!s[0]||!s[1]) return;
+      items.push({k:dKey(d), no:dNo(d), a:nameOf(d.cls,s[0]), b:nameOf(d.cls,s[1]), where:dWhere(d), mode:dMode(d)});
+    });
+  });
+  fetch(capUrl("&what=board"),{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({at:Date.now(),items:items})}).catch(function(){});
+}
+function scheduleBoard(){
+  if(!netKey()) return;
+  clearTimeout(boardT); boardT=setTimeout(publishBoard,2500);
+}
+function loadInbox(){
+  if(!netKey()||role!=="leitung") return;
+  fetch(capUrl("&what=reports")).then(function(r){ return r.json(); }).then(function(j){
+    inboxItems=(j&&j.items)||[]; renderInbox();
+  },function(){});
+}
+function clearInboxItem(id){
+  inboxItems=inboxItems.filter(function(x){ return x.id!==id; }); renderInbox();
+  fetch(capUrl("&what=clear&id="+encodeURIComponent(id)),{method:"POST"}).catch(function(){});
+}
+function renderInbox(){
+  var wrap=$("inbox-wrap"); if(!wrap) return;
+  var sub=$("inbox-sub");
+  if($("cap-url")) $("cap-url").value=location.origin+location.pathname+"#erfassen";
+  if(!netKey()){
+    wrap.innerHTML='<p class="empty">Ohne backupKey in config.js keine Handy-Erfassung möglich.</p>';
+    if(sub) sub.textContent="";
+    return;
+  }
+  if(sub) sub.textContent=inboxItems.length?inboxItems.length+" offen":"";
+  if(!inboxItems.length){ wrap.innerHTML='<p class="empty">Keine wartenden Meldungen.</p>'; return; }
+  var o="";
+  inboxItems.forEach(function(item){
+    var d=dParse(item.dk); if(d.kind==="group") d.gi=groupOf(d.cls,d.a);
+    var s=dSides(d);
+    var o2='<div class="caprow"><b>'+esc(item.no)+'  '+esc(item.a)+' – '+esc(item.b)+'</b>'+esc(item.v);
+    if(!s[0]||!s[1]){
+      o2+=' · Partie nicht mehr gültig</div><div class="field"><button class="btn ghost sm" data-inbox="discard" data-id="'+esc(item.id)+'">Verwerfen</button></div>';
+    } else if(dDone(d)){
+      o2+=' · bereits erfasst</div><div class="field"><button class="btn ghost sm" data-inbox="discard" data-id="'+esc(item.id)+'">Verwerfen</button></div>';
+    } else {
+      o2+='</div><div class="field"><button class="btn sm" data-inbox="apply" data-id="'+esc(item.id)+'">Übernehmen</button>'
+        +'<button class="btn ghost sm" data-inbox="discard" data-id="'+esc(item.id)+'">Verwerfen</button></div>';
+    }
+    o+=o2;
+  });
+  wrap.innerHTML=o;
 }
 function snapshotUndo(labelTxt){
   try{ lsSet(LS+"undo",JSON.stringify({label:labelTxt,at:Date.now(),data:JSON.parse(backupPayload())})); }catch(e){}
@@ -2365,9 +2533,10 @@ function setAuto(on){
 }
 function renderAll(){
   if(!role) return;
+  if(role==="erfassen"){ renderCapture(); return; }
   try{
   renderChips(); renderTabs(); renderRoster(); renderControls(); renderGroups();
-  renderBoardsPanel(); renderKo(); renderCalc(); renderSync();
+  renderBoardsPanel(); renderInbox(); renderKo(); renderCalc(); renderSync();
   if($("screen").classList.contains("on")) renderScreen();
   if($("results").classList.contains("on")) renderResults();
   }catch(e){ reportError("Anzeige: "+(e&&e.message)); }
@@ -2547,6 +2716,35 @@ $("ko-wrap").addEventListener("change",function(e){
   var t=e.target; if(!t.classList.contains("kres")) return;
   var d=dParse(t.dataset.d); setResult(d.cls,d,t.value);
 });
+$("cap-list").addEventListener("click",function(e){
+  if(e.target.closest("#cap-back")){ capSel=null; renderCapture(); return; }
+  var b=e.target.closest("button[data-capsel]"); if(!b) return;
+  capSelect(b.dataset.capsel);
+});
+$("cap-entry").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-cw]"); if(!b) return;
+  var parts=b.dataset.cw.split("|");
+  var ll=parseInt(parts.pop(),10), side=parseInt(parts.pop(),10), k=parts.join("|");
+  var item=capItems.filter(function(it){ return it.k===k; })[0]; if(!item) return;
+  capSubmit(item, side===0 ? ("2:"+ll) : (ll+":2"));
+});
+$("inbox-wrap").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-inbox]"); if(!b) return;
+  var id=b.dataset.id, item=inboxItems.filter(function(x){ return x.id===id; })[0];
+  if(!item) return;
+  if(b.dataset.inbox==="apply"){
+    var d=dParse(item.dk); if(d.kind==="group") d.gi=groupOf(d.cls,d.a);
+    var s=dSides(d);
+    if(s[0]&&s[1]&&!dDone(d)) setResult(d.cls,d,item.v);
+  }
+  clearInboxItem(id);
+});
+$("btn-cap-copy").addEventListener("click",function(){
+  var u=$("cap-url")?$("cap-url").value:"";
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(u).then(function(){ toast("Link kopiert."); },function(){ toast("Kopieren nicht möglich."); });
+  else toast("Kopieren nicht möglich.");
+});
 $("btn-copy").addEventListener("click",function(){
   var c=S[active];
   if(!c.groups||!c.groups.length){ toast("Noch nichts ausgelost."); return; }
@@ -2680,7 +2878,11 @@ document.addEventListener("keydown",function(e){
   if($("results").classList.contains("on")){ closeResults(); return; }
   if($("screen").classList.contains("on")) closeScreen();
 });
-window.addEventListener("online", function(){ online=true; if(sb){ pull(); flush(); } if(netDirty) pushNet(); renderSync(); });
+window.addEventListener("online", function(){
+  online=true; if(sb){ pull(); flush(); } if(netDirty) pushNet();
+  if(role==="erfassen") capFlush();
+  renderSync();
+});
 window.addEventListener("offline",function(){ online=false; renderSync(); });
 window.addEventListener("storage",function(e){ if(e.key&&e.key.indexOf(LS)===0){ loadLocal(); renderAll(); } });
 
@@ -2715,6 +2917,17 @@ function initSync(){
   setInterval(function(){ if(netDirty&&role==="leitung"&&online) pushNet(); },45000);
   setInterval(function(){ if(role) renderChips(); },60000);
   setInterval(function(){ if($("screen").classList.contains("on")) renderScreen(); },20000);
+
+  /* Rollen-Check jeweils im Intervall selbst (nicht nur beim Start), damit
+     ein Rollenwechsel per #hash zur Laufzeit (ohne Neuladen) sofort greift. */
+  loadCapQueue();
+  setInterval(function(){ if(role==="erfassen"){ loadCapBoard(); capFlush(); } },8000);
+  document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState==="visible"&&role==="erfassen"){ loadCapBoard(); capFlush(); }
+  });
+  setInterval(function(){ if(role==="leitung"&&netKey()&&online) loadInbox(); },8000);
+  if(role==="erfassen"){ loadCapBoard(); capFlush(); }
+  if(role==="leitung"){ loadInbox(); publishBoard(); }
 }
 Array.prototype.forEach.call(document.querySelectorAll("details.fold"),function(d){
   var k=LS+"fold:"+d.id, v=lsGet(k);

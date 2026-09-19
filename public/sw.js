@@ -3,7 +3,7 @@
    der Seite, hier wird nur die App selbst zwischengespeichert.
    Bei Änderungen an index.html die VERSION hochzählen.            */
 
-var VERSION = "hhdt-v19";
+var VERSION = "hhdt-v20";
 var CORE = [
   "./",
   "./index.html",
@@ -38,7 +38,8 @@ self.addEventListener("activate", function (e) {
 function isApiCall(url) {
   return url.indexOf("/rest/v1/") > -1 ||
          url.indexOf("/realtime/") > -1 ||
-         url.indexOf("/auth/v1/") > -1;
+         url.indexOf("/auth/v1/") > -1 ||
+         url.indexOf("/api/") > -1;   // eigene Functions nie aus dem Cache beantworten
 }
 
 self.addEventListener("fetch", function (e) {
